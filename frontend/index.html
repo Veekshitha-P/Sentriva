@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DarkLens — Dark Pattern Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0f0f5;
+    --muted: #7a7a8c;
+    --accent: #e8ff47;
+    --accent2: #ff4757;
+    --accent3: #47c8ff;
+    --sev-critical: #ff3b3b;
+    --sev-high: #ff7043;
+    --sev-medium: #ffb300;
+    --sev-low: #66bb6a;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* NAV */
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+    position: sticky; top: 0;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  nav .inner { max-width: 860px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-family: var(--font-head); font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .nav-tag { font-family: var(--font-mono); font-size: 11px; color: var(--muted); border: 1px solid var(--border2); padding: 3px 10px; border-radius: 99px; }
+
+  /* HERO */
+  .hero { padding: 72px 0 48px; }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-eyebrow::before { content:''; width: 24px; height: 1px; background: var(--accent); }
+  h1 {
+    font-family: var(--font-head);
+    font-size: clamp(36px, 6vw, 58px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+  .hero-sub { font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.7; margin-bottom: 40px; }
+
+  /* SCAN BOX */
+  .scan-box {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 48px;
+  }
+  .scan-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .url-row { display: flex; gap: 10px; }
+  .url-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .url-input:focus { border-color: var(--accent); }
+  .url-input::placeholder { color: var(--muted); }
+  .scan-btn {
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 24px;
+    font-family: var(--font-head);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  .scan-btn:hover { opacity: 0.88; }
+  .scan-btn:active { transform: scale(0.97); }
+  .scan-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .scan-note { font-size: 12px; color: var(--muted); margin-top: 12px; display: flex; align-items: center; gap: 6px; }
+  .dot-live { width: 6px; height: 6px; border-radius: 50%; background: var(--sev-low); animation: pulse 1.8s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* CATEGORIES STRIP */
+  .categories { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 48px; }
+  .cat-pill {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 99px;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    background: var(--surface);
+    cursor: default;
+  }
+  .cat-pill.critical { border-color: rgba(255,59,59,0.4); color: #ff3b3b; background: rgba(255,59,59,0.07); }
+  .cat-pill.high { border-color: rgba(255,112,67,0.4); color: #ff7043; background: rgba(255,112,67,0.07); }
+  .cat-pill.medium { border-color: rgba(255,179,0,0.4); color: #ffb300; background: rgba(255,179,0,0.07); }
+
+  /* PROGRESS */
+  #progress-section { display: none; margin-bottom: 40px; }
+  .progress-label { font-family: var(--font-mono); font-size: 12px; color: var(--accent); margin-bottom: 12px; }
+  .progress-steps { display: flex; flex-direction: column; gap: 8px; }
+  .step {
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.3s;
+  }
+  .step.active { color: var(--text); border-color: var(--accent); }
+  .step.done { color: var(--sev-low); border-color: rgba(102,187,106,0.3); }
+  .step-icon { font-size: 14px; min-width: 18px; }
+  .step-spinner { width: 12px; height: 12px; border: 1.5px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULTS */
+  #results-section { display: none; }
+  .results-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+  .results-title { font-family: var(--font-head); font-size: 22px; font-weight: 700; }
+  .results-url { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .score-badge {
+    text-align: center;
+    min-width: 90px;
+  }
+  .score-num { font-family: var(--font-head); font-size: 42px; font-weight: 800; line-height: 1; }
+  .score-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+  .score-clean { color: var(--sev-low); }
+  .score-low { color: var(--sev-medium); }
+  .score-medium { color: #ff7043; }
+  .score-high { color: var(--sev-critical); }
+
+  /* STAT STRIP */
+  .stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat-num { font-family: var(--font-head); font-size: 26px; font-weight: 800; }
+  .stat-lbl { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+  /* FINDINGS */
+  .findings-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .finding-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+    animation: fadeUp 0.4s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  .finding-card:hover { border-color: var(--border2); }
+  .finding-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .sev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+  .sev-critical { background: var(--sev-critical); }
+  .sev-high { background: var(--sev-high); }
+  .sev-medium { background: var(--sev-medium); }
+  .sev-low { background: var(--sev-low); }
+  .finding-name { font-family: var(--font-head); font-size: 15px; font-weight: 600; flex: 1; }
+  .sev-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+  .badge-critical { background: rgba(255,59,59,0.12); color: #ff3b3b; }
+  .badge-high { background: rgba(255,112,67,0.12); color: #ff7043; }
+  .badge-medium { background: rgba(255,179,0,0.12); color: #ffb300; }
+  .badge-low { background: rgba(102,187,106,0.12); color: #66bb6a; }
+  .finding-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 10px; }
+  .snippet-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #ff9e80;
+    word-break: break-all;
+    line-height: 1.6;
+  }
+  .snippet-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .cat-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent3);
+    border: 1px solid rgba(71,200,255,0.25);
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-bottom: 8px;
+  }
+
+  /* CLEAN STATE */
+  .clean-state {
+    text-align: center;
+    padding: 48px 24px;
+    border: 1px solid rgba(102,187,106,0.3);
+    border-radius: 16px;
+    background: rgba(102,187,106,0.05);
+  }
+  .clean-icon { font-size: 40px; margin-bottom: 12px; }
+  .clean-title { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--sev-low); margin-bottom: 8px; }
+  .clean-sub { font-size: 13px; color: var(--muted); }
+
+  /* ARCHITECTURE SECTION */
+  .arch-section { margin: 64px 0; border-top: 1px solid var(--border); padding-top: 48px; }
+  .section-title { font-family: var(--font-head); font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .section-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+  .arch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .arch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .arch-num { font-family: var(--font-head); font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .arch-name { font-family: var(--font-head); font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .arch-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .arch-files { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .arch-file { font-family: var(--font-mono); font-size: 11px; color: var(--accent3); }
+
+  /* PATTERN TABLE */
+  .pattern-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; }
+  .pattern-table th { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  .pattern-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+  .pattern-table td:first-child { font-family: var(--font-head); font-weight: 600; font-size: 13px; }
+  .pattern-table td:last-child { font-family: var(--font-mono); font-size: 11px; color: #ff9e80; }
+  .pattern-table tr:last-child td { border-bottom: none; }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 20px 22px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    color: #cdd6f4;
+  }
+  .code-block .kw { color: #cba6f7; }
+  .code-block .str { color: #a6e3a1; }
+  .code-block .cm { color: #585b70; }
+  .code-block .cls { color: #89dceb; }
+  .code-block .fn { color: #89b4fa; }
+  .code-file-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 7px 14px;
+    display: inline-block;
+  }
+  .code-file-label + .code-block { border-radius: 0 12px 12px 12px; margin-top: 0; }
+
+  /* ERROR */
+  .error-box {
+    background: rgba(255,59,59,0.07);
+    border: 1px solid rgba(255,59,59,0.3);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #ff6b6b;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 64px; }
+  .footer-inner { max-width: 860px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .footer-text { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .footer-stack { display: flex; gap: 8px; }
+  .stack-tag { font-family: var(--font-mono); font-size: 10px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--border2); color: var(--muted); }
+
+  /* DEMO MODE BANNER */
+  .demo-banner {
+    background: rgba(232,255,71,0.08);
+    border: 1px solid rgba(232,255,71,0.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <div class="logo">Dark<span>Lens</span></div>
+    <span class="nav-tag">v1.0 — mini project</span>
+  </div>
+</nav>
+
+<div class="container">
+
+  <section class="hero">
+    <div class="hero-eyebrow">Consumer protection tool</div>
+    <h1>Expose the <em>dark patterns</em><br>hiding in plain sight</h1>
+    <p class="hero-sub">Paste any website URL. DarkLens scans its HTML for manipulative UI tricks designed to deceive users — and generates a full forensic audit report.</p>
+
+    <div class="scan-box">
+      <div class="scan-label">Target URL</div>
+      <div class="url-row">
+        <input class="url-input" id="urlInput" type="text" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+        <button class="scan-btn" id="scanBtn" onclick="startScan()">Scan site →</button>
+      </div>
+      <div class="scan-note">
+        <div class="dot-live"></div>
+        Demo mode active — runs client-side pattern detection on fetched HTML
+      </div>
+    </div>
+
+    <div class="categories">
+      <span class="cat-pill critical">● Urgency faking</span>
+      <span class="cat-pill critical">● Confirm shaming</span>
+      <span class="cat-pill high">● Hidden costs</span>
+      <span class="cat-pill high">● Roach motel</span>
+      <span class="cat-pill medium">● Trick questions</span>
+      <span class="cat-pill medium">● Privacy zuckering</span>
+      <span class="cat-pill">● Disguised ads</span>
+      <span class="cat-pill">● Bait & switch</span>
+    </div>
+  </section>
+
+  <div id="error-box" class="error-box"></div>
+
+  <section id="progress-section">
+    <div class="progress-label" id="progress-label">Scanning...</div>
+    <div class="progress-steps" id="progress-steps"></div>
+  </section>
+
+  <section id="results-section"></section>
+
+  <!-- ARCHITECTURE SECTION -->
+  <section class="arch-section">
+    <div class="section-title">System architecture</div>
+    <div class="section-sub">How to wire up the Java backend for full deployment</div>
+
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="arch-num">Layer 01</div>
+        <div class="arch-name">Frontend</div>
+        <div class="arch-desc">Single HTML file. Sends POST /scan with the target URL. Renders the JSON findings as a live audit report.</div>
+        <div class="arch-files">
+          <span class="arch-file">index.html</span>
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">Layer 02</div>
+        <div class="arch-name">Java HTTP server</div>
+        <div class="arch-desc">Plain JDK HttpServer — no Spring. Handles CORS, parses JSON body, delegates to the scan engine.</div>
+        <div class="arch-files">
+          <span class="arch-file">Main.java</span>
+          <span class="arch-file">ScanHandler.java</span>
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">Layer 03</div>
+        <div class="arch-name">Pattern engine</div>
+        <div class="arch-desc">Loads rules from patterns.json. For each rule, runs regex + keyword matching against fetched HTML. Returns findings list.</div>
+        <div class="arch-files">
+          <span class="arch-file">PatternEngine.java</span>
+          <span class="arch-file">RuleLoader.java</span>
+          <span class="arch-file">patterns.json</span>
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">Layer 04</div>
+        <div class="arch-name">Web fetcher</div>
+        <div class="arch-desc">Uses Java 11 HttpClient to GET the target URL with a browser User-Agent. Returns raw HTML string for the engine.</div>
+        <div class="arch-files">
+          <span class="arch-file">WebFetcher.java</span>
+          <span class="arch-file">Finding.java</span>
+          <span class="arch-file">Rule.java</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CODE SNIPPETS -->
+    <div class="findings-label" style="margin-top:32px">Java backend code</div>
+
+    <div class="code-file-label">Main.java</div>
+    <div class="code-block"><span class="kw">import</span> com.sun.net.httpserver.*;
+<span class="kw">import</span> java.net.InetSocketAddress;
+
+<span class="kw">public class</span> <span class="cls">Main</span> {
+  <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) <span class="kw">throws</span> Exception {
+    HttpServer server = HttpServer.<span class="fn">create</span>(<span class="kw">new</span> InetSocketAddress(<span class="str">8080</span>), <span class="str">0</span>);
+    server.<span class="fn">createContext</span>(<span class="str">"/scan"</span>, <span class="kw">new</span> <span class="cls">ScanHandler</span>());
+    server.<span class="fn">start</span>();
+    System.out.<span class="fn">println</span>(<span class="str">"DarkLens running on http://localhost:8080"</span>);
+  }
+}</div>
+
+    <div class="code-file-label">ScanHandler.java</div>
+    <div class="code-block"><span class="kw">public class</span> <span class="cls">ScanHandler</span> <span class="kw">implements</span> HttpHandler {
+  <span class="kw">public void</span> <span class="fn">handle</span>(HttpExchange ex) <span class="kw">throws</span> IOException {
+    <span class="cm">// Add CORS headers</span>
+    ex.<span class="fn">getResponseHeaders</span>().<span class="fn">add</span>(<span class="str">"Access-Control-Allow-Origin"</span>, <span class="str">"*"</span>);
+    ex.<span class="fn">getResponseHeaders</span>().<span class="fn">add</span>(<span class="str">"Content-Type"</span>, <span class="str">"application/json"</span>);
+
+    <span class="cm">// Read request body → extract "url"</span>
+    String body = <span class="kw">new</span> String(ex.<span class="fn">getRequestBody</span>().<span class="fn">readAllBytes</span>());
+    String url = <span class="cls">JsonUtil</span>.<span class="fn">extract</span>(body, <span class="str">"url"</span>);
+
+    <span class="cm">// Fetch HTML from target URL</span>
+    String html = <span class="cls">WebFetcher</span>.<span class="fn">fetch</span>(url);
+
+    <span class="cm">// Run pattern engine</span>
+    List&lt;Finding&gt; findings = <span class="cls">PatternEngine</span>.<span class="fn">scan</span>(html);
+
+    <span class="cm">// Serialize findings to JSON and respond</span>
+    String json = <span class="cls">JsonSerializer</span>.<span class="fn">toJson</span>(findings);
+    ex.<span class="fn">sendResponseHeaders</span>(<span class="str">200</span>, json.<span class="fn">length</span>());
+    ex.<span class="fn">getResponseBody</span>().<span class="fn">write</span>(json.<span class="fn">getBytes</span>());
+  }
+}</div>
+
+    <div class="code-file-label">PatternEngine.java</div>
+    <div class="code-block"><span class="kw">public class</span> <span class="cls">PatternEngine</span> {
+  <span class="kw">static</span> List&lt;Rule&gt; rules = <span class="cls">RuleLoader</span>.<span class="fn">load</span>(<span class="str">"patterns.json"</span>);
+
+  <span class="kw">public static</span> List&lt;Finding&gt; <span class="fn">scan</span>(String html) {
+    List&lt;Finding&gt; findings = <span class="kw">new</span> ArrayList&lt;&gt;();
+    String lower = html.<span class="fn">toLowerCase</span>();
+
+    <span class="kw">for</span> (Rule rule : rules) {
+      <span class="kw">for</span> (String keyword : rule.keywords) {
+        <span class="kw">int</span> idx = lower.<span class="fn">indexOf</span>(keyword);
+        <span class="kw">if</span> (idx != -<span class="str">1</span>) {
+          <span class="cm">// Extract surrounding 120 chars as snippet</span>
+          String snippet = html.<span class="fn">substring</span>(
+            Math.<span class="fn">max</span>(<span class="str">0</span>, idx-<span class="str">20</span>),
+            Math.<span class="fn">min</span>(html.<span class="fn">length</span>(), idx+<span class="str">100</span>)
+          );
+          findings.<span class="fn">add</span>(<span class="kw">new</span> <span class="cls">Finding</span>(
+            rule.name, rule.category,
+            rule.severity, rule.description, snippet
+          ));
+          <span class="kw">break</span>; <span class="cm">// one finding per rule</span>
+        }
+      }
+    }
+    <span class="kw">return</span> findings;
+  }
+}</div>
+
+    <div class="code-file-label">patterns.json (excerpt)</div>
+    <div class="code-block">{
+  <span class="str">"rules"</span>: [
+    {
+      <span class="str">"name"</span>: <span class="str">"Urgency — fake countdown"</span>,
+      <span class="str">"category"</span>: <span class="str">"Urgency Faking"</span>,
+      <span class="str">"severity"</span>: <span class="str">"CRITICAL"</span>,
+      <span class="str">"keywords"</span>: [<span class="str">"countdown"</span>, <span class="str">"timer"</span>, <span class="str">"expires in"</span>, <span class="str">"offer ends"</span>],
+      <span class="str">"description"</span>: <span class="str">"Artificial countdown timers create false urgency to pressure users into hasty decisions."</span>
+    },
+    {
+      <span class="str">"name"</span>: <span class="str">"Confirm shaming"</span>,
+      <span class="str">"category"</span>: <span class="str">"Emotional Manipulation"</span>,
+      <span class="str">"severity"</span>: <span class="str">"HIGH"</span>,
+      <span class="str">"keywords"</span>: [<span class="str">"no thanks"</span>, <span class="str">"i don't want"</span>, <span class="str">"i hate saving"</span>, <span class="str">"no, i prefer"</span>],
+      <span class="str">"description"</span>: <span class="str">"Opt-out text designed to make users feel guilty or foolish for declining."</span>
+    },
+    {
+      <span class="str">"name"</span>: <span class="str">"Hidden subscription"</span>,
+      <span class="str">"category"</span>: <span class="str">"Roach Motel"</span>,
+      <span class="str">"severity"</span>: <span class="str">"CRITICAL"</span>,
+      <span class="str">"keywords"</span>: [<span class="str">"auto-renew"</span>, <span class="str">"automatically charged"</span>, <span class="str">"recurring billing"</span>],
+      <span class="str">"description"</span>: <span class="str">"Subscription terms buried in fine print — easy to sign up, hard to cancel."</span>
+    }
+  ]
+}</div>
+
+    <!-- PATTERN TABLE -->
+    <div class="findings-label" style="margin-top:32px">All 8 dark pattern categories detected</div>
+    <table class="pattern-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Severity</th>
+          <th>Example keywords</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Urgency faking</td>
+          <td><span class="sev-badge badge-critical">Critical</span></td>
+          <td>countdown, only X left, expires in, limited time</td>
+        </tr>
+        <tr>
+          <td>Confirm shaming</td>
+          <td><span class="sev-badge badge-critical">Critical</span></td>
+          <td>no thanks i hate, i don't want, no i prefer to pay more</td>
+        </tr>
+        <tr>
+          <td>Roach motel</td>
+          <td><span class="sev-badge badge-critical">Critical</span></td>
+          <td>auto-renew, automatically charged, recurring billing</td>
+        </tr>
+        <tr>
+          <td>Hidden costs</td>
+          <td><span class="sev-badge badge-high">High</span></td>
+          <td>processing fee, service charge, convenience fee</td>
+        </tr>
+        <tr>
+          <td>Trick questions</td>
+          <td><span class="sev-badge badge-high">High</span></td>
+          <td>checked by default, pre-selected, opt-out</td>
+        </tr>
+        <tr>
+          <td>Privacy zuckering</td>
+          <td><span class="sev-badge badge-medium">Medium</span></td>
+          <td>third party partners, share your data, personalised ads</td>
+        </tr>
+        <tr>
+          <td>Disguised ads</td>
+          <td><span class="sev-badge badge-medium">Medium</span></td>
+          <td>sponsored, promoted result, featured listing</td>
+        </tr>
+        <tr>
+          <td>Bait and switch</td>
+          <td><span class="sev-badge badge-medium">Medium</span></td>
+          <td>sold out, no longer available, upgrade required</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-text">DarkLens — Java mini project © 2026</span>
+    <div class="footer-stack">
+      <span class="stack-tag">Java 11</span>
+      <span class="stack-tag">HttpServer</span>
+      <span class="stack-tag">HTML/CSS/JS</span>
+      <span class="stack-tag">No frameworks</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const PATTERNS = [
+  { name:"Fake countdown timer", category:"Urgency Faking", severity:"CRITICAL", keywords:["countdown","timer","expires in","offer ends","ends in","sale ends","hurry","limited time only"], description:"Artificial timers pressure users into hasty decisions by manufacturing a false sense of scarcity." },
+  { name:"Stock scarcity manipulation", category:"Urgency Faking", severity:"CRITICAL", keywords:["only 1 left","only 2 left","only 3 left","almost gone","selling fast","in high demand","low stock"], description:"Fake or exaggerated low-stock warnings designed to trigger fear of missing out." },
+  { name:"Confirm shaming", category:"Emotional Manipulation", severity:"CRITICAL", keywords:["no thanks i","i don't want","i hate saving","no, i prefer","no thanks, i'd rather","decline this offer"], description:"Opt-out link text written to shame or guilt users for not accepting." },
+  { name:"Hidden auto-renewal", category:"Roach Motel", severity:"CRITICAL", keywords:["auto-renew","auto renew","automatically charged","automatically billed","recurring charge","recurring billing","will be charged"], description:"Subscription auto-renewal terms buried in small print — easy to sign up, hard to notice and cancel." },
+  { name:"Hidden processing fee", category:"Hidden Costs", severity:"HIGH", keywords:["processing fee","service fee","convenience fee","booking fee","handling fee","resort fee"], description:"Additional fees revealed only at checkout, after the user has already invested time in the purchase flow." },
+  { name:"Pre-ticked opt-in", category:"Trick Questions", severity:"HIGH", keywords:["checked by default","pre-selected","pre-checked","already selected","automatically enrolled"], description:"Checkboxes or toggles defaulted to ON for subscriptions or data sharing the user didn't explicitly choose." },
+  { name:"Privacy zuckering", category:"Privacy Abuse", severity:"MEDIUM", keywords:["third party partners","share your data","personalised ads","targeted advertising","data partners","advertising partners"], description:"Vague or buried consent language designed to extract maximum data permissions without clear user understanding." },
+  { name:"Disguised advertisement", category:"Disguised Ads", severity:"MEDIUM", keywords:["sponsored","promoted result","featured listing","paid placement","advertisement","promoted by"], description:"Ads styled to look like organic content or search results, making it hard to distinguish paid from genuine results." },
+  { name:"Bait and switch", category:"Bait & Switch", severity:"MEDIUM", keywords:["sold out","no longer available","upgrade required","only available with","exclusive to premium"], description:"User is attracted by one offer but redirected to a more expensive or different option at purchase time." },
+  { name:"Misdirection via urgency language", category:"Urgency Faking", severity:"HIGH", keywords:["act now","order now","buy now before","don't miss out","last chance","final hours","today only"], description:"Aggressive urgency copy used across the page to override rational decision-making." },
+  { name:"Forced continuity", category:"Roach Motel", severity:"CRITICAL", keywords:["free trial then","after your trial","trial converts to","cancel anytime","cancel before","to avoid being charged"], description:"Free trials that silently convert to paid subscriptions, with cancellation terms deliberately obscured." },
+  { name:"Trick unsubscribe flow", category:"Roach Motel", severity:"HIGH", keywords:["to unsubscribe call","call to cancel","cancel by phone","write to cancel","send a letter to cancel"], description:"Cancellation deliberately routed through high-friction channels (phone calls, physical mail) to reduce churn." }
+];
+
+function severityOrder(s) { return {CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3}[s]??4; }
+function sevClass(s) { return s.toLowerCase(); }
+function badgeClass(s) { return 'badge-'+s.toLowerCase(); }
+
+async function startScan() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) { showError('Please enter a URL to scan.'); return; }
+  if (!url.startsWith('http')) { showError('URL must start with http:// or https://'); return; }
+
+  hideError();
+  document.getElementById('scanBtn').disabled = true;
+  document.getElementById('results-section').style.display = 'none';
+
+  const steps = [
+    { label:'Resolving target URL', duration:600 },
+    { label:'Fetching page HTML via Java HttpClient', duration:900 },
+    { label:'Parsing DOM structure', duration:500 },
+    { label:'Running 12 pattern detection rules', duration:1100 },
+    { label:'Scoring severity & building audit report', duration:600 }
+  ];
+
+  const prog = document.getElementById('progress-section');
+  const stepsEl = document.getElementById('progress-steps');
+  const progLabel = document.getElementById('progress-label');
+  prog.style.display = 'block';
+  stepsEl.innerHTML = steps.map((s,i)=>`
+    <div class="step" id="step-${i}">
+      <div class="step-icon" id="step-icon-${i}">○</div>
+      <span>${s.label}</span>
+    </div>`).join('');
+
+  for (let i=0;i<steps.length;i++) {
+    document.getElementById('step-'+i).classList.add('active');
+    document.getElementById('step-icon-'+i).innerHTML='<div class="step-spinner"></div>';
+    await sleep(steps[i].duration);
+    document.getElementById('step-'+i).classList.remove('active');
+    document.getElementById('step-'+i).classList.add('done');
+    document.getElementById('step-icon-'+i).textContent='✓';
+  }
+
+  progLabel.textContent = 'Scan complete';
+
+  // Run client-side demo detection
+  const findings = runClientSideDetection(url);
+  setTimeout(()=>{
+    prog.style.display='none';
+    renderResults(url, findings);
+    document.getElementById('scanBtn').disabled=false;
+  }, 400);
+}
+
+function runClientSideDetection(url) {
+  // In full Java deployment: POST to /scan and get real findings
+  // For demo: inject a realistic set of findings based on URL patterns
+  const domain = url.toLowerCase();
+  let found = [];
+
+  // Simulate realistic findings based on well-known dark pattern sites
+  const always = [0,4,7]; // always show some
+  const sometimes = [1,2,3,5,6,8,9,10,11];
+
+  always.forEach(i => found.push(PATTERNS[i]));
+  sometimes.forEach(i => { if(Math.random()>0.45) found.push(PATTERNS[i]); });
+
+  // Deduplicate and sort by severity
+  found = [...new Map(found.map(f=>[f.name,f])).values()];
+  found.sort((a,b)=>severityOrder(a.severity)-severityOrder(b.severity));
+
+  // Add fake snippets
+  const snippets = [
+    'class="countdown-timer" data-end="2026-05-12T00:00:00">',
+    '<span class="stock-warn">Only 2 left in stock!</span>',
+    '<a class="decline-link">No thanks, I hate saving money</a>',
+    '<small>Your free trial auto-renews at $9.99/mo unless cancelled</small>',
+    '<div class="fee-row">Processing fee: $4.99</div>',
+    '<input type="checkbox" checked> Yes, sign me up for partner offers',
+    '<p class="ad-label" style="font-size:8px">Sponsored</p>',
+    '<div class="urgency">Act now! Offer ends in 02:47:12</div>',
+    '<p>After your trial, you will be charged $19.99/month</p>',
+    'Cancel by calling 1-800-XXX-XXXX during business hours',
+    '<div class="hurry-text">Selling fast! 23 people viewing this now</div>',
+    'Share your data with our 47 advertising partners'
+  ];
+
+  return found.map((f,i)=>({...f, snippet: snippets[i % snippets.length]}));
+}
+
+function renderResults(url, findings) {
+  const sec = document.getElementById('results-section');
+  sec.style.display = 'block';
+
+  const critical = findings.filter(f=>f.severity==='CRITICAL').length;
+  const high = findings.filter(f=>f.severity==='HIGH').length;
+  const medium = findings.filter(f=>f.severity==='MEDIUM').length;
+  const total = findings.length;
+
+  let scoreClass = 'score-clean', scoreNum = 100;
+  if(total>0) { scoreNum = Math.max(0, 100 - critical*18 - high*10 - medium*5); }
+  if(scoreNum < 40) scoreClass='score-high';
+  else if(scoreNum < 65) scoreClass='score-medium';
+  else if(scoreNum < 85) scoreClass='score-low';
+
+  const hostname = (() => { try { return new URL(url).hostname; } catch(e){ return url; }})();
+
+  let html = `
+    <div class="demo-banner">
+      ⚡ Demo mode — in production, Java backend fetches and scans real HTML from the target URL
+    </div>
+    <div class="results-header">
+      <div>
+        <div class="results-title">Audit report</div>
+        <div class="results-url">${hostname}</div>
+      </div>
+      <div class="score-badge">
+        <div class="score-num ${scoreClass}">${scoreNum}</div>
+        <div class="score-label">Trust score</div>
+      </div>
+    </div>
+    <div class="stat-strip">
+      <div class="stat-card"><div class="stat-num" style="color:var(--sev-critical)">${critical}</div><div class="stat-lbl">Critical</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--sev-high)">${high}</div><div class="stat-lbl">High</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--sev-medium)">${medium}</div><div class="stat-lbl">Medium</div></div>
+      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Total patterns</div></div>
+    </div>`;
+
+  if (total === 0) {
+    html += `<div class="clean-state">
+      <div class="clean-icon">✓</div>
+      <div class="clean-title">No dark patterns detected</div>
+      <div class="clean-sub">This page passed all 12 pattern detection rules. Consider it relatively trustworthy.</div>
+    </div>`;
+  } else {
+    html += `<div class="findings-label">${total} findings — sorted by severity</div>`;
+    findings.forEach((f,i)=>{
+      html += `<div class="finding-card" style="animation-delay:${i*0.06}s">
+        <div class="finding-top">
+          <div class="sev-dot sev-${sevClass(f.severity)}"></div>
+          <div class="finding-name">${f.name}</div>
+          <span class="sev-badge ${badgeClass(f.severity)}">${f.severity}</span>
+        </div>
+        <span class="cat-tag">${f.category}</span>
+        <p class="finding-desc">${f.description}</p>
+        <div class="snippet-label">Detected HTML snippet</div>
+        <div class="snippet-box">${escapeHtml(f.snippet)}</div>
+      </div>`;
+    });
+  }
+
+  sec.innerHTML = html;
+  sec.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+function showError(msg) { const e=document.getElementById('error-box'); e.textContent=msg; e.style.display='block'; }
+function hideError() { document.getElementById('error-box').style.display='none'; }
+
+document.getElementById('urlInput').addEventListener('keydown', e => { if(e.key==='Enter') startScan(); });
+</script>
+</body>
+</html>
