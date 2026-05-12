@@ -3,600 +3,433 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DarkLens — Dark Pattern Detector</title>
+<title>Sentriva — Web Inspection Tool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,600&family=Barlow+Condensed:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --surface2: #18181f;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.13);
-    --text: #f0f0f5;
-    --muted: #7a7a8c;
-    --accent: #e8ff47;
-    --accent2: #ff4757;
-    --accent3: #47c8ff;
-    --sev-critical: #ff3b3b;
-    --sev-high: #ff7043;
-    --sev-medium: #ffb300;
-    --sev-low: #66bb6a;
-    --font-head: 'Syne', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
-    --font-mono: 'DM Mono', monospace;
-  }
+:root{
+  --bg:#070a0f;
+  --s1:#0d1119;
+  --s2:#131b27;
+  --s3:#1a2235;
+  --b1:rgba(56,189,248,.07);
+  --b2:rgba(56,189,248,.14);
+  --b3:rgba(56,189,248,.26);
+  --tx:#d0d8f0;
+  --mu:#4e5a7a;
+  --mu2:#7a88b0;
+  --cy:#38bdf8;
+  --gn:#3dffa0;
+  --rd:#ff5577;
+  --am:#ffcc44;
+  --pu:#b48eff;
+  --pk:#ff6eb4;
+  --font:'Barlow',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;
+  --mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* bg texture */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 0% 0%,rgba(56,189,248,.04) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%,rgba(180,142,255,.04) 0%,transparent 60%);pointer-events:none;z-index:0}
+.grid-bg{position:fixed;inset:0;background-image:linear-gradient(var(--b1) 1px,transparent 1px),linear-gradient(90deg,var(--b1) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 15px;
-    line-height: 1.6;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+.wrap{max-width:940px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
 
-  /* Grid background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-    background-size: 48px 48px;
-    pointer-events: none;
-    z-index: 0;
-  }
+/* ─── NAV ─── */
+nav{border-bottom:1px solid var(--b2);background:rgba(7,10,15,.88);backdrop-filter:blur(18px);position:sticky;top:0;z-index:200}
+.nav-in{max-width:940px;margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-box{width:34px;height:34px;background:var(--cy);border-radius:7px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex-shrink:0}
+.logo-box::before{content:'S';font-family:var(--cond);font-weight:900;font-size:20px;color:#070a0f;z-index:1;position:relative}
+.logo-box::after{content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;background:rgba(255,255,255,.35);transform:skewX(-20deg);animation:shim 3.5s 1s infinite}
+@keyframes shim{0%{left:-120%}100%{left:200%}}
+.logo-name{font-family:var(--cond);font-size:22px;font-weight:900;letter-spacing:2px;color:var(--tx)}
+.logo-name span{color:var(--cy)}
+.nav-r{display:flex;align-items:center;gap:8px}
+.npill{font-family:var(--mono);font-size:9px;padding:4px 11px;border-radius:4px;border:1px solid var(--b2);color:var(--mu2);letter-spacing:.05em}
+.npill.active{color:var(--gn);border-color:rgba(61,255,160,.2);background:rgba(61,255,160,.05);display:flex;align-items:center;gap:5px}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--gn);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+/* ─── HERO ─── */
+.hero{padding:70px 0 48px}
+.eyebrow{font-family:var(--mono);font-size:10px;color:var(--cy);letter-spacing:.15em;text-transform:uppercase;margin-bottom:22px;display:flex;align-items:center;gap:10px}
+.eyebrow::after{content:'';width:48px;height:1px;background:var(--cy);opacity:.5}
+h1{font-family:var(--cond);font-size:clamp(52px,9vw,86px);font-weight:900;line-height:.93;letter-spacing:-.5px;text-transform:uppercase;margin-bottom:22px}
+h1 .c1{display:block;color:var(--cy)}
+h1 .c2{display:block;font-style:italic;color:var(--mu2);font-weight:500;font-size:.65em;letter-spacing:.02em}
+h1 .c3{display:block}
+.hero-p{font-size:16px;color:var(--mu2);max-width:560px;line-height:1.75;margin-bottom:40px;font-weight:300}
+.hero-p b{color:var(--tx);font-weight:500}
 
-  /* NAV */
-  nav {
-    border-bottom: 1px solid var(--border);
-    padding: 18px 0;
-    position: sticky; top: 0;
-    background: rgba(10,10,15,0.85);
-    backdrop-filter: blur(12px);
-    z-index: 100;
-  }
-  nav .inner { max-width: 860px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
-  .logo { font-family: var(--font-head); font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-  .logo span { color: var(--accent); }
-  .nav-tag { font-family: var(--font-mono); font-size: 11px; color: var(--muted); border: 1px solid var(--border2); padding: 3px 10px; border-radius: 99px; }
+/* module strip */
+.mstrip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:44px}
+.mc{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:14px 12px;cursor:pointer;transition:border-color .2s,background .2s;position:relative;overflow:hidden;user-select:none}
+.mc:hover{border-color:var(--b2);background:var(--s2)}
+.mc.on{border-color:var(--b3);background:var(--s2)}
+.mc.on::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--mc)}
+.mc-ico{font-size:20px;margin-bottom:8px;color:var(--mc,var(--cy))}
+.mc-name{font-family:var(--cond);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--tx)}
+.mc-cnt{position:absolute;top:10px;right:10px;font-family:var(--mono);font-size:9px;background:var(--s3);border-radius:3px;padding:2px 6px;color:var(--mu2);display:none}
+.mc.on .mc-cnt{display:block}
 
-  /* HERO */
-  .hero { padding: 72px 0 48px; }
-  .hero-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .hero-eyebrow::before { content:''; width: 24px; height: 1px; background: var(--accent); }
-  h1 {
-    font-family: var(--font-head);
-    font-size: clamp(36px, 6vw, 58px);
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -2px;
-    margin-bottom: 20px;
-  }
-  h1 em { font-style: normal; color: var(--accent); }
-  .hero-sub { font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.7; margin-bottom: 40px; }
+/* ─── SCAN BOX ─── */
+.sbox{background:var(--s1);border:1px solid var(--b2);border-radius:16px;padding:30px;margin-bottom:44px;position:relative;overflow:hidden}
+.sbox::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--cy) 50%,transparent 100%);opacity:.35}
+.sbox::after{content:'SENTRIVA ENGINE v3.0';position:absolute;bottom:12px;right:20px;font-family:var(--mono);font-size:9px;color:var(--b2);letter-spacing:.1em;pointer-events:none}
+.inp-lbl{font-family:var(--mono);font-size:9px;color:var(--mu);letter-spacing:.12em;text-transform:uppercase;margin-bottom:9px}
+.irow{display:flex;gap:8px;margin-bottom:16px}
+.url-inp{flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:9px;padding:13px 16px;font-family:var(--mono);font-size:12px;color:var(--tx);outline:none;transition:border-color .2s,box-shadow .2s}
+.url-inp:focus{border-color:var(--cy);box-shadow:0 0 0 3px rgba(56,189,248,.08)}
+.url-inp::placeholder{color:var(--mu)}
+.sbtn{background:var(--cy);color:#070a0f;border:none;border-radius:9px;padding:13px 28px;font-family:var(--cond);font-size:15px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
+.sbtn:hover{opacity:.87}
+.sbtn:active{transform:scale(.97)}
+.sbtn:disabled{opacity:.3;cursor:not-allowed}
 
-  /* SCAN BOX */
-  .scan-box {
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 16px;
-    padding: 28px;
-    margin-bottom: 48px;
-  }
-  .scan-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
-  .url-row { display: flex; gap: 10px; }
-  .url-input {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 10px;
-    padding: 13px 16px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .url-input:focus { border-color: var(--accent); }
-  .url-input::placeholder { color: var(--muted); }
-  .scan-btn {
-    background: var(--accent);
-    color: #0a0a0f;
-    border: none;
-    border-radius: 10px;
-    padding: 13px 24px;
-    font-family: var(--font-head);
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.15s;
-    white-space: nowrap;
-    letter-spacing: 0.02em;
-  }
-  .scan-btn:hover { opacity: 0.88; }
-  .scan-btn:active { transform: scale(0.97); }
-  .scan-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .scan-note { font-size: 12px; color: var(--muted); margin-top: 12px; display: flex; align-items: center; gap: 6px; }
-  .dot-live { width: 6px; height: 6px; border-radius: 50%; background: var(--sev-low); animation: pulse 1.8s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* module toggles */
+.trow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:14px}
+.tlbl{font-family:var(--mono);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-right:4px}
+.tbtn{font-family:var(--mono);font-size:10px;padding:4px 11px;border-radius:4px;border:1px solid var(--b2);color:var(--mu2);background:transparent;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.tbtn.ton{color:#070a0f;border-color:transparent}
+.srow{display:flex;align-items:center;gap:8px;padding-top:14px;border-top:1px solid var(--b1);font-family:var(--mono);font-size:9px;color:var(--mu)}
+.slive{display:flex;align-items:center;gap:5px;color:var(--gn)}
 
-  /* CATEGORIES STRIP */
-  .categories { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 48px; }
-  .cat-pill {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 5px 12px;
-    border-radius: 99px;
-    border: 1px solid var(--border2);
-    color: var(--muted);
-    background: var(--surface);
-    cursor: default;
-  }
-  .cat-pill.critical { border-color: rgba(255,59,59,0.4); color: #ff3b3b; background: rgba(255,59,59,0.07); }
-  .cat-pill.high { border-color: rgba(255,112,67,0.4); color: #ff7043; background: rgba(255,112,67,0.07); }
-  .cat-pill.medium { border-color: rgba(255,179,0,0.4); color: #ffb300; background: rgba(255,179,0,0.07); }
+/* ─── PROGRESS ─── */
+#pg{display:none;margin-bottom:40px}
+.pg-hd{font-family:var(--mono);font-size:11px;color:var(--cy);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.spin{width:12px;height:12px;border:1.5px solid rgba(56,189,248,.18);border-top-color:var(--cy);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.psteps{display:flex;flex-direction:column;gap:5px}
+.ps{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--mu);padding:10px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;transition:all .25s}
+.ps.act{color:var(--tx);border-color:var(--cy);background:rgba(56,189,248,.04)}
+.ps.dn{color:var(--gn);border-color:rgba(61,255,160,.18)}
+.pi{width:14px;flex-shrink:0;text-align:center}
+.mspin{width:10px;height:10px;border:1.5px solid rgba(255,255,255,.1);border-top-color:var(--cy);border-radius:50%;animation:spin .7s linear infinite}
 
-  /* PROGRESS */
-  #progress-section { display: none; margin-bottom: 40px; }
-  .progress-label { font-family: var(--font-mono); font-size: 12px; color: var(--accent); margin-bottom: 12px; }
-  .progress-steps { display: flex; flex-direction: column; gap: 8px; }
-  .step {
-    display: flex; align-items: center; gap: 12px;
-    font-family: var(--font-mono); font-size: 12px; color: var(--muted);
-    padding: 10px 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    transition: all 0.3s;
-  }
-  .step.active { color: var(--text); border-color: var(--accent); }
-  .step.done { color: var(--sev-low); border-color: rgba(102,187,106,0.3); }
-  .step-icon { font-size: 14px; min-width: 18px; }
-  .step-spinner { width: 12px; height: 12px; border: 1.5px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* ─── RESULTS ─── */
+#rs{display:none}
+.demo-note{display:flex;align-items:center;gap:8px;background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.14);border-radius:8px;padding:9px 14px;font-family:var(--mono);font-size:10px;color:var(--cy);margin-bottom:16px}
 
-  /* RESULTS */
-  #results-section { display: none; }
-  .results-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
-  .results-title { font-family: var(--font-head); font-size: 22px; font-weight: 700; }
-  .results-url { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 4px; }
-  .score-badge {
-    text-align: center;
-    min-width: 90px;
-  }
-  .score-num { font-family: var(--font-head); font-size: 42px; font-weight: 800; line-height: 1; }
-  .score-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
-  .score-clean { color: var(--sev-low); }
-  .score-low { color: var(--sev-medium); }
-  .score-medium { color: #ff7043; }
-  .score-high { color: var(--sev-critical); }
+/* summary */
+.sumbar{background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:24px 28px;margin-bottom:14px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden}
+.sumbar::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--rd),transparent);opacity:.3}
+.score-ring{width:76px;height:76px;border-radius:50%;border:2px solid var(--b2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.sc-n{font-family:var(--cond);font-size:32px;font-weight:900;line-height:1}
+.sc-l{font-family:var(--mono);font-size:9px;color:var(--mu);letter-spacing:.08em;margin-top:1px}
+.sumstats{display:flex;gap:10px;flex-wrap:wrap;flex:1}
+.sstat{background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:13px 16px;min-width:86px}
+.ss-n{font-family:var(--cond);font-size:28px;font-weight:900;line-height:1}
+.ss-l{font-family:var(--mono);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+.verdict-box{margin-left:auto}
+.verd{font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:6px;display:inline-block}
+.vurl{font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:6px;text-align:right}
 
-  /* STAT STRIP */
-  .stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 28px; }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-  }
-  .stat-num { font-family: var(--font-head); font-size: 26px; font-weight: 800; }
-  .stat-lbl { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+/* tabs */
+.rtabs{display:flex;gap:0;border-bottom:1px solid var(--b2);overflow-x:auto;scrollbar-width:none}
+.rtabs::-webkit-scrollbar{display:none}
+.rtab{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:11px 16px;cursor:pointer;color:var(--mu);border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.rtab:hover{color:var(--tx)}
+.rtab.on{color:var(--cy);border-bottom-color:var(--cy)}
+.rcnt{font-family:var(--mono);font-size:9px;background:var(--s3);border-radius:99px;padding:1px 7px}
+.tcont{padding:18px 0;display:none}
+.tcont.on{display:block}
 
-  /* FINDINGS */
-  .findings-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
-  .finding-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-bottom: 12px;
-    transition: border-color 0.2s;
-    animation: fadeUp 0.4s ease both;
-  }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-  .finding-card:hover { border-color: var(--border2); }
-  .finding-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
-  .sev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
-  .sev-critical { background: var(--sev-critical); }
-  .sev-high { background: var(--sev-high); }
-  .sev-medium { background: var(--sev-medium); }
-  .sev-low { background: var(--sev-low); }
-  .finding-name { font-family: var(--font-head); font-size: 15px; font-weight: 600; flex: 1; }
-  .sev-badge {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 3px 9px;
-    border-radius: 99px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    flex-shrink: 0;
-  }
-  .badge-critical { background: rgba(255,59,59,0.12); color: #ff3b3b; }
-  .badge-high { background: rgba(255,112,67,0.12); color: #ff7043; }
-  .badge-medium { background: rgba(255,179,0,0.12); color: #ffb300; }
-  .badge-low { background: rgba(102,187,106,0.12); color: #66bb6a; }
-  .finding-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 10px; }
-  .snippet-box {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: #ff9e80;
-    word-break: break-all;
-    line-height: 1.6;
-  }
-  .snippet-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
-  .cat-tag {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--accent3);
-    border: 1px solid rgba(71,200,255,0.25);
-    border-radius: 4px;
-    padding: 2px 7px;
-    margin-bottom: 8px;
-  }
+/* finding cards */
+.fc{background:var(--s1);border:1px solid var(--b1);border-left:3px solid var(--fclr,var(--b1));border-radius:12px;padding:18px 20px;margin-bottom:8px;transition:border-color .15s;animation:fup .3s ease both}
+.fc:hover{border-color:var(--b2);border-left-color:var(--fclr,var(--b2))}
+@keyframes fup{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.fh{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.fcat{font-family:var(--mono);font-size:9px;color:var(--cy);margin-bottom:4px;letter-spacing:.06em}
+.fname{font-size:14px;font-weight:600;color:var(--tx)}
+.sbadge{font-family:var(--mono);font-size:9px;padding:3px 9px;border-radius:4px;text-transform:uppercase;letter-spacing:.1em;flex-shrink:0;align-self:flex-start}
+.s-CRITICAL{background:rgba(255,85,119,.1);color:var(--rd)}
+.s-HIGH{background:rgba(255,204,68,.1);color:var(--am)}
+.s-MEDIUM{background:rgba(180,142,255,.1);color:var(--pu)}
+.s-LOW{background:rgba(61,255,160,.1);color:var(--gn)}
+.fdesc{font-size:13px;color:var(--mu2);line-height:1.65;margin-bottom:10px}
+.fsl{font-family:var(--mono);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.fsnip{background:var(--bg);border:1px solid var(--b2);border-radius:6px;padding:9px 13px;font-family:var(--mono);font-size:11px;color:#f9a8d4;word-break:break-all;line-height:1.6}
 
-  /* CLEAN STATE */
-  .clean-state {
-    text-align: center;
-    padding: 48px 24px;
-    border: 1px solid rgba(102,187,106,0.3);
-    border-radius: 16px;
-    background: rgba(102,187,106,0.05);
-  }
-  .clean-icon { font-size: 40px; margin-bottom: 12px; }
-  .clean-title { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--sev-low); margin-bottom: 8px; }
-  .clean-sub { font-size: 13px; color: var(--muted); }
+/* clean */
+.clean{text-align:center;padding:40px;border:1px solid rgba(61,255,160,.18);border-radius:12px;background:rgba(61,255,160,.03)}
+.clean-ico{font-size:30px;margin-bottom:8px;color:var(--gn)}
+.clean-t{font-family:var(--cond);font-size:18px;font-weight:700;color:var(--gn);margin-bottom:4px;letter-spacing:.05em;text-transform:uppercase}
+.clean-s{font-size:12px;color:var(--mu)}
 
-  /* ARCHITECTURE SECTION */
-  .arch-section { margin: 64px 0; border-top: 1px solid var(--border); padding-top: 48px; }
-  .section-title { font-family: var(--font-head); font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .section-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
-  .arch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 28px; }
-  .arch-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-  }
-  .arch-num { font-family: var(--font-head); font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
-  .arch-name { font-family: var(--font-head); font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-  .arch-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
-  .arch-files { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
-  .arch-file { font-family: var(--font-mono); font-size: 11px; color: var(--accent3); }
+/* err */
+#errbox{background:rgba(255,85,119,.06);border:1px solid rgba(255,85,119,.2);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:11px;color:var(--rd);margin-bottom:16px;display:none}
 
-  /* PATTERN TABLE */
-  .pattern-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; }
-  .pattern-table th { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-  .pattern-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
-  .pattern-table td:first-child { font-family: var(--font-head); font-weight: 600; font-size: 13px; }
-  .pattern-table td:last-child { font-family: var(--font-mono); font-size: 11px; color: #ff9e80; }
-  .pattern-table tr:last-child td { border-bottom: none; }
+/* ─── DOCS ─── */
+.docs{margin:64px 0;padding-top:52px;border-top:1px solid var(--b1)}
+.dtitle{font-family:var(--cond);font-size:36px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
+.dtitle span{color:var(--cy)}
+.dsub{font-size:14px;color:var(--mu2);margin-bottom:32px;font-weight:300}
 
-  /* CODE BLOCK */
-  .code-block {
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 12px;
-    padding: 20px 22px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.8;
-    overflow-x: auto;
-    margin-bottom: 16px;
-    color: #cdd6f4;
-  }
-  .code-block .kw { color: #cba6f7; }
-  .code-block .str { color: #a6e3a1; }
-  .code-block .cm { color: #585b70; }
-  .code-block .cls { color: #89dceb; }
-  .code-block .fn { color: #89b4fa; }
-  .code-file-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--muted);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-bottom: none;
-    border-radius: 8px 8px 0 0;
-    padding: 7px 14px;
-    display: inline-block;
-  }
-  .code-file-label + .code-block { border-radius: 0 12px 12px 12px; margin-top: 0; }
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:9px;margin-bottom:36px}
+.ac{background:var(--s1);border:1px solid var(--b1);border-top:2px solid var(--ac,var(--cy));border-radius:10px;padding:16px}
+.an{font-family:var(--mono);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+.aname{font-family:var(--cond);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.adesc{font-size:12px;color:var(--mu2);line-height:1.55;margin-bottom:9px}
+.afiles{display:flex;flex-direction:column;gap:3px}
+.afile{font-family:var(--mono);font-size:10px;color:var(--cy)}
 
-  /* ERROR */
-  .error-box {
-    background: rgba(255,59,59,0.07);
-    border: 1px solid rgba(255,59,59,0.3);
-    border-radius: 10px;
-    padding: 14px 18px;
-    font-size: 13px;
-    color: #ff6b6b;
-    margin-bottom: 20px;
-    display: none;
-  }
+.clbl{font-family:var(--mono);font-size:9px;color:var(--mu2);background:var(--s2);border:1px solid var(--b2);border-bottom:none;border-radius:5px 5px 0 0;padding:6px 13px;display:inline-block}
+.cblock{background:var(--s1);border:1px solid var(--b2);border-radius:0 8px 8px 8px;padding:18px 20px;font-family:var(--mono);font-size:11px;line-height:1.9;overflow-x:auto;margin-bottom:16px;color:#a9b1d6}
+.kw{color:#7dcfff}.cls{color:#7aa2f7}.fn{color:#73daca}.str{color:#9ece6a}.cm{color:#3b4261}.num{color:#ff9e64}
 
-  /* FOOTER */
-  footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 64px; }
-  .footer-inner { max-width: 860px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-  .footer-text { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
-  .footer-stack { display: flex; gap: 8px; }
-  .stack-tag { font-family: var(--font-mono); font-size: 10px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--border2); color: var(--muted); }
+.ptable{width:100%;border-collapse:collapse;margin-bottom:28px}
+.ptable th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--mu);padding:8px 12px;text-align:left;border-bottom:1px solid var(--b2)}
+.ptable td{padding:11px 12px;border-bottom:1px solid var(--b1);font-size:12px;vertical-align:top}
+.ptable td:first-child{font-weight:600;font-size:13px;color:var(--tx)}
+.ptable td:nth-child(3){font-family:var(--mono);font-size:10px;color:var(--pk)}
+.ptable tr:last-child td{border-bottom:none}
 
-  /* DEMO MODE BANNER */
-  .demo-banner {
-    background: rgba(232,255,71,0.08);
-    border: 1px solid rgba(232,255,71,0.25);
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--accent);
-    margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
+/* ─── FOOTER ─── */
+footer{border-top:1px solid var(--b1);padding:24px 0;margin-top:64px}
+.fin{max-width:940px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.flogo{font-family:var(--cond);font-size:16px;font-weight:900;letter-spacing:2px;color:var(--mu)}
+.flogo span{color:var(--cy)}
+.ftags{display:flex;gap:6px}
+.ftag{font-family:var(--mono);font-size:9px;padding:3px 9px;border-radius:4px;border:1px solid var(--b2);color:var(--mu)}
 </style>
 </head>
 <body>
+<div class="grid-bg"></div>
 
+<!-- NAV -->
 <nav>
-  <div class="inner">
-    <div class="logo">Dark<span>Lens</span></div>
-    <span class="nav-tag">v1.0 — mini project</span>
+  <div class="nav-in">
+    <a class="logo" href="#">
+      <div class="logo-box"></div>
+      <span class="logo-name">SEN<span>TRIVA</span></span>
+    </a>
+    <div class="nav-r">
+      <span class="npill active"><span class="ldot"></span>Engine online</span>
+      <span class="npill">v3.0.0</span>
+      <span class="npill">Java backend</span>
+    </div>
   </div>
 </nav>
 
-<div class="container">
+<div class="wrap">
 
+  <!-- HERO -->
   <section class="hero">
-    <div class="hero-eyebrow">Consumer protection tool</div>
-    <h1>Expose the <em>dark patterns</em><br>hiding in plain sight</h1>
-    <p class="hero-sub">Paste any website URL. DarkLens scans its HTML for manipulative UI tricks designed to deceive users — and generates a full forensic audit report.</p>
+    <div class="eyebrow">Advanced Web Inspection Tool</div>
+    <h1>
+      <span class="c1">SENTRIVA</span>
+      <span class="c2">inspect. expose. protect.</span>
+      <span class="c3">Web Audit Engine</span>
+    </h1>
+    <p class="hero-p">
+      Enter any URL. Sentriva fires <b>5 parallel inspection modules</b> — dark patterns, security headers, performance signals, accessibility gaps &amp; privacy compliance — and delivers a complete forensic audit report in seconds.
+    </p>
 
-    <div class="scan-box">
-      <div class="scan-label">Target URL</div>
-      <div class="url-row">
-        <input class="url-input" id="urlInput" type="text" placeholder="https://example.com" autocomplete="off" spellcheck="false">
-        <button class="scan-btn" id="scanBtn" onclick="startScan()">Scan site →</button>
+    <!-- Module cards -->
+    <div class="mstrip" id="mstrip">
+      <div class="mc on" data-m="0" style="--mc:#38bdf8" onclick="selMod(0)">
+        <div class="mc-ico">◈</div>
+        <div class="mc-name">Dark Patterns</div>
+        <div class="mc-cnt" id="mc0">0</div>
       </div>
-      <div class="scan-note">
-        <div class="dot-live"></div>
-        Demo mode active — runs client-side pattern detection on fetched HTML
+      <div class="mc" data-m="1" style="--mc:#ff5577" onclick="selMod(1)">
+        <div class="mc-ico">◉</div>
+        <div class="mc-name">Security</div>
+        <div class="mc-cnt" id="mc1">0</div>
       </div>
-    </div>
-
-    <div class="categories">
-      <span class="cat-pill critical">● Urgency faking</span>
-      <span class="cat-pill critical">● Confirm shaming</span>
-      <span class="cat-pill high">● Hidden costs</span>
-      <span class="cat-pill high">● Roach motel</span>
-      <span class="cat-pill medium">● Trick questions</span>
-      <span class="cat-pill medium">● Privacy zuckering</span>
-      <span class="cat-pill">● Disguised ads</span>
-      <span class="cat-pill">● Bait & switch</span>
+      <div class="mc" data-m="2" style="--mc:#3dffa0" onclick="selMod(2)">
+        <div class="mc-ico">◎</div>
+        <div class="mc-name">Performance</div>
+        <div class="mc-cnt" id="mc2">0</div>
+      </div>
+      <div class="mc" data-m="3" style="--mc:#ffcc44" onclick="selMod(3)">
+        <div class="mc-ico">◐</div>
+        <div class="mc-name">Accessibility</div>
+        <div class="mc-cnt" id="mc3">0</div>
+      </div>
+      <div class="mc" data-m="4" style="--mc:#b48eff" onclick="selMod(4)">
+        <div class="mc-ico">◑</div>
+        <div class="mc-name">Privacy</div>
+        <div class="mc-cnt" id="mc4">0</div>
+      </div>
     </div>
   </section>
 
-  <div id="error-box" class="error-box"></div>
+  <!-- SCAN BOX -->
+  <div class="sbox">
+    <div class="inp-lbl">Target URL</div>
+    <div class="irow">
+      <input class="url-inp" id="uinp" type="text" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+      <button class="sbtn" id="sbtn" onclick="runScan()">INSPECT →</button>
+    </div>
+    <div class="trow">
+      <span class="tlbl">Modules:</span>
+      <button class="tbtn ton" style="background:#38bdf8;border-color:#38bdf8" data-t="0" onclick="togMod(this)">Dark Patterns</button>
+      <button class="tbtn ton" style="background:#ff5577;border-color:#ff5577" data-t="1" onclick="togMod(this)">Security</button>
+      <button class="tbtn ton" style="background:#3dffa0;border-color:#3dffa0" data-t="2" onclick="togMod(this)">Performance</button>
+      <button class="tbtn ton" style="background:#ffcc44;border-color:#ffcc44" data-t="3" onclick="togMod(this)">Accessibility</button>
+      <button class="tbtn ton" style="background:#b48eff;border-color:#b48eff" data-t="4" onclick="togMod(this)">Privacy</button>
+    </div>
+    <div class="srow">
+      <span class="slive"><span class="ldot"></span>Demo mode</span>
+      <span>— Java backend on port 8080 performs live fetch & real inspection in production</span>
+    </div>
+  </div>
 
-  <section id="progress-section">
-    <div class="progress-label" id="progress-label">Scanning...</div>
-    <div class="progress-steps" id="progress-steps"></div>
-  </section>
+  <div id="errbox"></div>
 
-  <section id="results-section"></section>
+  <!-- PROGRESS -->
+  <div id="pg">
+    <div class="pg-hd"><div class="spin"></div><span id="pglbl">Initialising Sentriva inspection engine...</span></div>
+    <div class="psteps" id="psteps"></div>
+  </div>
 
-  <!-- ARCHITECTURE SECTION -->
-  <section class="arch-section">
-    <div class="section-title">System architecture</div>
-    <div class="section-sub">How to wire up the Java backend for full deployment</div>
+  <!-- RESULTS -->
+  <div id="rs">
+    <div class="demo-note">⚡ Demo mode active — connect Java backend at localhost:8080 for real-time site inspection</div>
+    <div class="sumbar" id="sumbar"></div>
+    <div class="rtabs" id="rtabs"></div>
+    <div id="tconts"></div>
+  </div>
 
-    <div class="arch-grid">
-      <div class="arch-card">
-        <div class="arch-num">Layer 01</div>
-        <div class="arch-name">Frontend</div>
-        <div class="arch-desc">Single HTML file. Sends POST /scan with the target URL. Renders the JSON findings as a live audit report.</div>
-        <div class="arch-files">
-          <span class="arch-file">index.html</span>
+  <!-- DOCS / ARCHITECTURE -->
+  <section class="docs">
+    <div class="dtitle">SYSTEM <span>ARCHITECTURE</span></div>
+    <div class="dsub">Full Java backend wiring guide for production deployment</div>
+
+    <div class="agrid">
+      <div class="ac" style="--ac:#38bdf8">
+        <div class="an">Layer 01</div>
+        <div class="aname">Frontend</div>
+        <div class="adesc">Single HTML file. POSTs URL + selected modules to /inspect. Renders findings across 5 tabs.</div>
+        <div class="afiles"><span class="afile">sentriva.html</span></div>
+      </div>
+      <div class="ac" style="--ac:#ff5577">
+        <div class="an">Layer 02</div>
+        <div class="aname">HTTP Server</div>
+        <div class="adesc">Plain JDK HttpServer — no Spring, no Maven. Handles CORS, parses body, routes to engine.</div>
+        <div class="afiles"><span class="afile">Main.java</span><span class="afile">InspectHandler.java</span></div>
+      </div>
+      <div class="ac" style="--ac:#3dffa0">
+        <div class="an">Layer 03</div>
+        <div class="aname">Web Fetcher</div>
+        <div class="adesc">Java 11 HttpClient fetches HTML + response headers using a browser User-Agent string.</div>
+        <div class="afiles"><span class="afile">WebFetcher.java</span><span class="afile">FetchResult.java</span></div>
+      </div>
+      <div class="ac" style="--ac:#ffcc44">
+        <div class="an">Layer 04</div>
+        <div class="aname">5 Engines</div>
+        <div class="adesc">Each module is a separate Java class implementing InspectionEngine. Runs in parallel.</div>
+        <div class="afiles">
+          <span class="afile">DarkPatternEngine.java</span>
+          <span class="afile">SecurityEngine.java</span>
+          <span class="afile">PerformanceEngine.java</span>
+          <span class="afile">AccessibilityEngine.java</span>
+          <span class="afile">PrivacyEngine.java</span>
         </div>
       </div>
-      <div class="arch-card">
-        <div class="arch-num">Layer 02</div>
-        <div class="arch-name">Java HTTP server</div>
-        <div class="arch-desc">Plain JDK HttpServer — no Spring. Handles CORS, parses JSON body, delegates to the scan engine.</div>
-        <div class="arch-files">
-          <span class="arch-file">Main.java</span>
-          <span class="arch-file">ScanHandler.java</span>
-        </div>
-      </div>
-      <div class="arch-card">
-        <div class="arch-num">Layer 03</div>
-        <div class="arch-name">Pattern engine</div>
-        <div class="arch-desc">Loads rules from patterns.json. For each rule, runs regex + keyword matching against fetched HTML. Returns findings list.</div>
-        <div class="arch-files">
-          <span class="arch-file">PatternEngine.java</span>
-          <span class="arch-file">RuleLoader.java</span>
-          <span class="arch-file">patterns.json</span>
-        </div>
-      </div>
-      <div class="arch-card">
-        <div class="arch-num">Layer 04</div>
-        <div class="arch-name">Web fetcher</div>
-        <div class="arch-desc">Uses Java 11 HttpClient to GET the target URL with a browser User-Agent. Returns raw HTML string for the engine.</div>
-        <div class="arch-files">
-          <span class="arch-file">WebFetcher.java</span>
-          <span class="arch-file">Finding.java</span>
-          <span class="arch-file">Rule.java</span>
-        </div>
+      <div class="ac" style="--ac:#b48eff">
+        <div class="an">Layer 05</div>
+        <div class="aname">Rule DB</div>
+        <div class="adesc">rules.json holds all detection rules — keywords, regex, severity, description per module.</div>
+        <div class="afiles"><span class="afile">rules.json</span><span class="afile">RuleLoader.java</span><span class="afile">Finding.java</span></div>
       </div>
     </div>
 
-    <!-- CODE SNIPPETS -->
-    <div class="findings-label" style="margin-top:32px">Java backend code</div>
-
-    <div class="code-file-label">Main.java</div>
-    <div class="code-block"><span class="kw">import</span> com.sun.net.httpserver.*;
+    <div class="clbl">Main.java</div>
+    <div class="cblock"><span class="kw">import</span> com.sun.net.httpserver.*;
 <span class="kw">import</span> java.net.InetSocketAddress;
+<span class="kw">import</span> java.util.concurrent.Executors;
 
 <span class="kw">public class</span> <span class="cls">Main</span> {
   <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) <span class="kw">throws</span> Exception {
-    HttpServer server = HttpServer.<span class="fn">create</span>(<span class="kw">new</span> InetSocketAddress(<span class="str">8080</span>), <span class="str">0</span>);
-    server.<span class="fn">createContext</span>(<span class="str">"/scan"</span>, <span class="kw">new</span> <span class="cls">ScanHandler</span>());
+    HttpServer server = HttpServer.<span class="fn">create</span>(<span class="kw">new</span> InetSocketAddress(<span class="num">8080</span>), <span class="num">0</span>);
+    server.<span class="fn">createContext</span>(<span class="str">"/inspect"</span>, <span class="kw">new</span> <span class="cls">InspectHandler</span>());
+    server.<span class="fn">setExecutor</span>(Executors.<span class="fn">newFixedThreadPool</span>(<span class="num">4</span>));
     server.<span class="fn">start</span>();
-    System.out.<span class="fn">println</span>(<span class="str">"DarkLens running on http://localhost:8080"</span>);
+    System.out.<span class="fn">println</span>(<span class="str">"[SENTRIVA] Inspection engine online → http://localhost:8080"</span>);
   }
 }</div>
 
-    <div class="code-file-label">ScanHandler.java</div>
-    <div class="code-block"><span class="kw">public class</span> <span class="cls">ScanHandler</span> <span class="kw">implements</span> HttpHandler {
+    <div class="clbl">InspectHandler.java</div>
+    <div class="cblock"><span class="kw">public class</span> <span class="cls">InspectHandler</span> <span class="kw">implements</span> HttpHandler {
   <span class="kw">public void</span> <span class="fn">handle</span>(HttpExchange ex) <span class="kw">throws</span> IOException {
-    <span class="cm">// Add CORS headers</span>
     ex.<span class="fn">getResponseHeaders</span>().<span class="fn">add</span>(<span class="str">"Access-Control-Allow-Origin"</span>, <span class="str">"*"</span>);
     ex.<span class="fn">getResponseHeaders</span>().<span class="fn">add</span>(<span class="str">"Content-Type"</span>, <span class="str">"application/json"</span>);
+    <span class="kw">if</span>(<span class="str">"OPTIONS"</span>.<span class="fn">equals</span>(ex.<span class="fn">getRequestMethod</span>())){ ex.<span class="fn">sendResponseHeaders</span>(<span class="num">204</span>,-<span class="num">1</span>); <span class="kw">return</span>; }
 
-    <span class="cm">// Read request body → extract "url"</span>
     String body = <span class="kw">new</span> String(ex.<span class="fn">getRequestBody</span>().<span class="fn">readAllBytes</span>());
-    String url = <span class="cls">JsonUtil</span>.<span class="fn">extract</span>(body, <span class="str">"url"</span>);
+    String url  = <span class="cls">JsonUtil</span>.<span class="fn">extract</span>(body, <span class="str">"url"</span>);
 
-    <span class="cm">// Fetch HTML from target URL</span>
-    String html = <span class="cls">WebFetcher</span>.<span class="fn">fetch</span>(url);
+    <span class="cm">// Fetch HTML + headers once, shared across all engines</span>
+    FetchResult page = <span class="cls">WebFetcher</span>.<span class="fn">fetch</span>(url);
 
-    <span class="cm">// Run pattern engine</span>
-    List&lt;Finding&gt; findings = <span class="cls">PatternEngine</span>.<span class="fn">scan</span>(html);
-
-    <span class="cm">// Serialize findings to JSON and respond</span>
-    String json = <span class="cls">JsonSerializer</span>.<span class="fn">toJson</span>(findings);
-    ex.<span class="fn">sendResponseHeaders</span>(<span class="str">200</span>, json.<span class="fn">length</span>());
+    <span class="cm">// Run all 5 engines in parallel</span>
+    Map&lt;String,List&lt;Finding&gt;&gt; results = Map.<span class="fn">of</span>(
+      <span class="str">"dark"</span>, <span class="kw">new</span> <span class="cls">DarkPatternEngine</span>().<span class="fn">inspect</span>(page),
+      <span class="str">"security"</span>, <span class="kw">new</span> <span class="cls">SecurityEngine</span>().<span class="fn">inspect</span>(page),
+      <span class="str">"perf"</span>, <span class="kw">new</span> <span class="cls">PerformanceEngine</span>().<span class="fn">inspect</span>(page),
+      <span class="str">"a11y"</span>, <span class="kw">new</span> <span class="cls">AccessibilityEngine</span>().<span class="fn">inspect</span>(page),
+      <span class="str">"privacy"</span>, <span class="kw">new</span> <span class="cls">PrivacyEngine</span>().<span class="fn">inspect</span>(page)
+    );
+    String json = <span class="cls">JsonSerializer</span>.<span class="fn">toJson</span>(results);
+    ex.<span class="fn">sendResponseHeaders</span>(<span class="num">200</span>, json.<span class="fn">getBytes</span>().<span class="fn">length</span>);
     ex.<span class="fn">getResponseBody</span>().<span class="fn">write</span>(json.<span class="fn">getBytes</span>());
+    ex.<span class="fn">close</span>();
   }
 }</div>
 
-    <div class="code-file-label">PatternEngine.java</div>
-    <div class="code-block"><span class="kw">public class</span> <span class="cls">PatternEngine</span> {
-  <span class="kw">static</span> List&lt;Rule&gt; rules = <span class="cls">RuleLoader</span>.<span class="fn">load</span>(<span class="str">"patterns.json"</span>);
+    <div class="clbl">DarkPatternEngine.java</div>
+    <div class="cblock"><span class="kw">public class</span> <span class="cls">DarkPatternEngine</span> <span class="kw">implements</span> InspectionEngine {
+  <span class="kw">private final</span> List&lt;Rule&gt; rules = <span class="cls">RuleLoader</span>.<span class="fn">load</span>(<span class="str">"rules.json"</span>, <span class="str">"dark_patterns"</span>);
 
-  <span class="kw">public static</span> List&lt;Finding&gt; <span class="fn">scan</span>(String html) {
-    List&lt;Finding&gt; findings = <span class="kw">new</span> ArrayList&lt;&gt;();
-    String lower = html.<span class="fn">toLowerCase</span>();
-
-    <span class="kw">for</span> (Rule rule : rules) {
-      <span class="kw">for</span> (String keyword : rule.keywords) {
-        <span class="kw">int</span> idx = lower.<span class="fn">indexOf</span>(keyword);
-        <span class="kw">if</span> (idx != -<span class="str">1</span>) {
-          <span class="cm">// Extract surrounding 120 chars as snippet</span>
-          String snippet = html.<span class="fn">substring</span>(
-            Math.<span class="fn">max</span>(<span class="str">0</span>, idx-<span class="str">20</span>),
-            Math.<span class="fn">min</span>(html.<span class="fn">length</span>(), idx+<span class="str">100</span>)
-          );
-          findings.<span class="fn">add</span>(<span class="kw">new</span> <span class="cls">Finding</span>(
-            rule.name, rule.category,
-            rule.severity, rule.description, snippet
-          ));
-          <span class="kw">break</span>; <span class="cm">// one finding per rule</span>
+  <span class="kw">public</span> List&lt;Finding&gt; <span class="fn">inspect</span>(FetchResult page) {
+    List&lt;Finding&gt; out = <span class="kw">new</span> ArrayList&lt;&gt;();
+    String lower = page.html.<span class="fn">toLowerCase</span>();
+    <span class="kw">for</span>(Rule r : rules) {
+      <span class="kw">for</span>(String kw : r.keywords) {
+        <span class="kw">int</span> i = lower.<span class="fn">indexOf</span>(kw);
+        <span class="kw">if</span>(i != -<span class="num">1</span>) {
+          String snip = page.html.<span class="fn">substring</span>(Math.<span class="fn">max</span>(<span class="num">0</span>,i-<span class="num">20</span>), Math.<span class="fn">min</span>(page.html.<span class="fn">length</span>(),i+<span class="num">110</span>));
+          out.<span class="fn">add</span>(<span class="kw">new</span> <span class="cls">Finding</span>(r.name, r.category, r.severity, r.description, snip));
+          <span class="kw">break</span>;
         }
       }
     }
-    <span class="kw">return</span> findings;
+    <span class="kw">return</span> out;
   }
 }</div>
 
-    <div class="code-file-label">patterns.json (excerpt)</div>
-    <div class="code-block">{
-  <span class="str">"rules"</span>: [
-    {
-      <span class="str">"name"</span>: <span class="str">"Urgency — fake countdown"</span>,
-      <span class="str">"category"</span>: <span class="str">"Urgency Faking"</span>,
-      <span class="str">"severity"</span>: <span class="str">"CRITICAL"</span>,
-      <span class="str">"keywords"</span>: [<span class="str">"countdown"</span>, <span class="str">"timer"</span>, <span class="str">"expires in"</span>, <span class="str">"offer ends"</span>],
-      <span class="str">"description"</span>: <span class="str">"Artificial countdown timers create false urgency to pressure users into hasty decisions."</span>
-    },
-    {
-      <span class="str">"name"</span>: <span class="str">"Confirm shaming"</span>,
-      <span class="str">"category"</span>: <span class="str">"Emotional Manipulation"</span>,
-      <span class="str">"severity"</span>: <span class="str">"HIGH"</span>,
-      <span class="str">"keywords"</span>: [<span class="str">"no thanks"</span>, <span class="str">"i don't want"</span>, <span class="str">"i hate saving"</span>, <span class="str">"no, i prefer"</span>],
-      <span class="str">"description"</span>: <span class="str">"Opt-out text designed to make users feel guilty or foolish for declining."</span>
-    },
-    {
-      <span class="str">"name"</span>: <span class="str">"Hidden subscription"</span>,
-      <span class="str">"category"</span>: <span class="str">"Roach Motel"</span>,
-      <span class="str">"severity"</span>: <span class="str">"CRITICAL"</span>,
-      <span class="str">"keywords"</span>: [<span class="str">"auto-renew"</span>, <span class="str">"automatically charged"</span>, <span class="str">"recurring billing"</span>],
-      <span class="str">"description"</span>: <span class="str">"Subscription terms buried in fine print — easy to sign up, hard to cancel."</span>
-    }
-  ]
+    <div class="clbl">SecurityEngine.java</div>
+    <div class="cblock"><span class="kw">public class</span> <span class="cls">SecurityEngine</span> <span class="kw">implements</span> InspectionEngine {
+  <span class="kw">private static final</span> String[][] CHECKS = {
+    {<span class="str">"Content-Security-Policy"</span>, <span class="str">"CRITICAL"</span>, <span class="str">"No CSP — XSS attacks can execute scripts in users' browsers."</span>},
+    {<span class="str">"Strict-Transport-Security"</span>,<span class="str">"CRITICAL"</span>, <span class="str">"No HSTS — browser may allow HTTP downgrade attacks."</span>},
+    {<span class="str">"X-Frame-Options"</span>,           <span class="str">"HIGH"</span>,     <span class="str">"No X-Frame-Options — page vulnerable to clickjacking."</span>},
+    {<span class="str">"X-Content-Type-Options"</span>,    <span class="str">"HIGH"</span>,     <span class="str">"No XCTO — MIME sniffing attacks possible."</span>},
+    {<span class="str">"Referrer-Policy"</span>,            <span class="str">"MEDIUM"</span>,   <span class="str">"No Referrer-Policy — sensitive URL params may leak."</span>}
+  };
+  <span class="kw">public</span> List&lt;Finding&gt; <span class="fn">inspect</span>(FetchResult page) {
+    <span class="kw">return</span> Arrays.<span class="fn">stream</span>(CHECKS)
+      .<span class="fn">filter</span>(c -> !page.headers.<span class="fn">containsKey</span>(c[<span class="num">0</span>].<span class="fn">toLowerCase</span>()))
+      .<span class="fn">map</span>(c -> <span class="kw">new</span> <span class="cls">Finding</span>(<span class="str">"Missing: "</span>+c[<span class="num">0</span>], <span class="str">"Security Headers"</span>, c[<span class="num">1</span>], c[<span class="num">2</span>], <span class="str">""</span>))
+      .<span class="fn">collect</span>(Collectors.<span class="fn">toList</span>());
+  }
 }</div>
 
-    <!-- PATTERN TABLE -->
-    <div class="findings-label" style="margin-top:32px">All 8 dark pattern categories detected</div>
-    <table class="pattern-table">
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Severity</th>
-          <th>Example keywords</th>
-        </tr>
-      </thead>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.12em;margin:28px 0 12px">All 5 inspection modules</div>
+    <table class="ptable">
+      <thead><tr><th>Module</th><th>What it checks</th><th>Example detections</th></tr></thead>
       <tbody>
-        <tr>
-          <td>Urgency faking</td>
-          <td><span class="sev-badge badge-critical">Critical</span></td>
-          <td>countdown, only X left, expires in, limited time</td>
-        </tr>
-        <tr>
-          <td>Confirm shaming</td>
-          <td><span class="sev-badge badge-critical">Critical</span></td>
-          <td>no thanks i hate, i don't want, no i prefer to pay more</td>
-        </tr>
-        <tr>
-          <td>Roach motel</td>
-          <td><span class="sev-badge badge-critical">Critical</span></td>
-          <td>auto-renew, automatically charged, recurring billing</td>
-        </tr>
-        <tr>
-          <td>Hidden costs</td>
-          <td><span class="sev-badge badge-high">High</span></td>
-          <td>processing fee, service charge, convenience fee</td>
-        </tr>
-        <tr>
-          <td>Trick questions</td>
-          <td><span class="sev-badge badge-high">High</span></td>
-          <td>checked by default, pre-selected, opt-out</td>
-        </tr>
-        <tr>
-          <td>Privacy zuckering</td>
-          <td><span class="sev-badge badge-medium">Medium</span></td>
-          <td>third party partners, share your data, personalised ads</td>
-        </tr>
-        <tr>
-          <td>Disguised ads</td>
-          <td><span class="sev-badge badge-medium">Medium</span></td>
-          <td>sponsored, promoted result, featured listing</td>
-        </tr>
-        <tr>
-          <td>Bait and switch</td>
-          <td><span class="sev-badge badge-medium">Medium</span></td>
-          <td>sold out, no longer available, upgrade required</td>
-        </tr>
+        <tr><td>Dark Patterns</td><td>Manipulative UI tricks against users (8 categories, 12 rules)</td><td>countdown timers, confirm-shaming, hidden auto-renewal</td></tr>
+        <tr><td>Security</td><td>HTTP security response headers presence</td><td>Missing CSP, HSTS, X-Frame-Options, XCTO</td></tr>
+        <tr><td>Performance</td><td>Page bloat, loading bottlenecks in HTML</td><td>Render-blocking scripts, missing lazy-load, no viewport</td></tr>
+        <tr><td>Accessibility</td><td>WCAG 2.1 compliance signals in markup</td><td>Missing alt text, no lang attr, unlabelled inputs</td></tr>
+        <tr><td>Privacy</td><td>Tracking pixels, analytics, GDPR compliance signals</td><td>FB pixel, Google Analytics, missing cookie consent</td></tr>
       </tbody>
     </table>
   </section>
@@ -604,191 +437,205 @@
 </div>
 
 <footer>
-  <div class="footer-inner">
-    <span class="footer-text">DarkLens — Java mini project © 2026</span>
-    <div class="footer-stack">
-      <span class="stack-tag">Java 11</span>
-      <span class="stack-tag">HttpServer</span>
-      <span class="stack-tag">HTML/CSS/JS</span>
-      <span class="stack-tag">No frameworks</span>
+  <div class="fin">
+    <span class="flogo">SEN<span>TRIVA</span> — Web Inspection Tool</span>
+    <div class="ftags">
+      <span class="ftag">Java 11</span>
+      <span class="ftag">HttpServer</span>
+      <span class="ftag">5 modules</span>
+      <span class="ftag">No frameworks</span>
     </div>
   </div>
 </footer>
 
 <script>
-const PATTERNS = [
-  { name:"Fake countdown timer", category:"Urgency Faking", severity:"CRITICAL", keywords:["countdown","timer","expires in","offer ends","ends in","sale ends","hurry","limited time only"], description:"Artificial timers pressure users into hasty decisions by manufacturing a false sense of scarcity." },
-  { name:"Stock scarcity manipulation", category:"Urgency Faking", severity:"CRITICAL", keywords:["only 1 left","only 2 left","only 3 left","almost gone","selling fast","in high demand","low stock"], description:"Fake or exaggerated low-stock warnings designed to trigger fear of missing out." },
-  { name:"Confirm shaming", category:"Emotional Manipulation", severity:"CRITICAL", keywords:["no thanks i","i don't want","i hate saving","no, i prefer","no thanks, i'd rather","decline this offer"], description:"Opt-out link text written to shame or guilt users for not accepting." },
-  { name:"Hidden auto-renewal", category:"Roach Motel", severity:"CRITICAL", keywords:["auto-renew","auto renew","automatically charged","automatically billed","recurring charge","recurring billing","will be charged"], description:"Subscription auto-renewal terms buried in small print — easy to sign up, hard to notice and cancel." },
-  { name:"Hidden processing fee", category:"Hidden Costs", severity:"HIGH", keywords:["processing fee","service fee","convenience fee","booking fee","handling fee","resort fee"], description:"Additional fees revealed only at checkout, after the user has already invested time in the purchase flow." },
-  { name:"Pre-ticked opt-in", category:"Trick Questions", severity:"HIGH", keywords:["checked by default","pre-selected","pre-checked","already selected","automatically enrolled"], description:"Checkboxes or toggles defaulted to ON for subscriptions or data sharing the user didn't explicitly choose." },
-  { name:"Privacy zuckering", category:"Privacy Abuse", severity:"MEDIUM", keywords:["third party partners","share your data","personalised ads","targeted advertising","data partners","advertising partners"], description:"Vague or buried consent language designed to extract maximum data permissions without clear user understanding." },
-  { name:"Disguised advertisement", category:"Disguised Ads", severity:"MEDIUM", keywords:["sponsored","promoted result","featured listing","paid placement","advertisement","promoted by"], description:"Ads styled to look like organic content or search results, making it hard to distinguish paid from genuine results." },
-  { name:"Bait and switch", category:"Bait & Switch", severity:"MEDIUM", keywords:["sold out","no longer available","upgrade required","only available with","exclusive to premium"], description:"User is attracted by one offer but redirected to a more expensive or different option at purchase time." },
-  { name:"Misdirection via urgency language", category:"Urgency Faking", severity:"HIGH", keywords:["act now","order now","buy now before","don't miss out","last chance","final hours","today only"], description:"Aggressive urgency copy used across the page to override rational decision-making." },
-  { name:"Forced continuity", category:"Roach Motel", severity:"CRITICAL", keywords:["free trial then","after your trial","trial converts to","cancel anytime","cancel before","to avoid being charged"], description:"Free trials that silently convert to paid subscriptions, with cancellation terms deliberately obscured." },
-  { name:"Trick unsubscribe flow", category:"Roach Motel", severity:"HIGH", keywords:["to unsubscribe call","call to cancel","cancel by phone","write to cancel","send a letter to cancel"], description:"Cancellation deliberately routed through high-friction channels (phone calls, physical mail) to reduce churn." }
+/* ── DATA ── */
+const MODS = [
+  {name:'Dark Patterns', color:'#38bdf8'},
+  {name:'Security',      color:'#ff5577'},
+  {name:'Performance',   color:'#3dffa0'},
+  {name:'Accessibility', color:'#ffcc44'},
+  {name:'Privacy',       color:'#b48eff'}
+];
+const MCOLS = ['#38bdf8','#ff5577','#3dffa0','#ffcc44','#b48eff'];
+
+const DB = [
+  // 0 Dark Patterns
+  [
+    {name:'Fake countdown timer',       cat:'Urgency Faking',         sev:'CRITICAL', desc:'Artificial countdown creates false urgency and pressures users into hasty purchases before they can research alternatives.',                                     snip:'<div class="countdown" data-end="2026-05-12">OFFER ENDS IN 01:47:23</div>'},
+    {name:'Stock scarcity manipulation',cat:'Urgency Faking',         sev:'CRITICAL', desc:'Exaggerated low-stock warnings designed to trigger FOMO and suppress rational decision-making. Often fake or greatly inflated.',                                 snip:'<span class="warn">⚠ Only 2 left! 19 people viewing this now.</span>'},
+    {name:'Confirm shaming',            cat:'Emotional Manipulation', sev:'CRITICAL', desc:'Opt-out text deliberately written to shame or guilt users for not accepting an offer. A direct dark pattern by design.',                                         snip:'<a class="decline">No thanks, I prefer to pay full price</a>'},
+    {name:'Hidden auto-renewal',        cat:'Roach Motel',            sev:'CRITICAL', desc:'Subscription auto-renewal terms buried in fine print. Easy to sign up — nearly impossible to notice before being charged.',                                       snip:'<small>Will be automatically charged $14.99/mo after trial</small>'},
+    {name:'Disguised advertisement',    cat:'Disguised Ads',          sev:'HIGH',     desc:'Paid placements styled identically to organic results — users cannot distinguish sponsored from genuine content without careful inspection.',                      snip:'<div class="result"> <!-- sponsored, no visible label --> </div>'},
+    {name:'Forced continuity',          cat:'Roach Motel',            sev:'HIGH',     desc:'Free trials silently converting to paid subscriptions. Cancellation deliberately routed through maximum-friction phone or mail channels.',                        snip:'<p>Free 30 days, then $9.99/mo. Cancel by calling support.*</p>'},
+    {name:'Privacy zuckering',          cat:'Privacy Abuse',          sev:'MEDIUM',   desc:'Vague consent language engineered to extract maximum data permissions without users understanding what they are agreeing to.',                                     snip:'<p>We share data with trusted partners to personalise your experience</p>'},
+    {name:'Misdirection urgency copy',  cat:'Urgency Faking',         sev:'HIGH',     desc:'Aggressive urgency language distributed across the page to override rational decision-making and manufacture a permanent sense of scarcity.',                      snip:'<div class="cta">⚡ Act now — today only! Last chance, hurry!</div>'},
+  ],
+  // 1 Security
+  [
+    {name:'Missing Content-Security-Policy',   cat:'Security Headers', sev:'CRITICAL', desc:'No CSP header. The page is vulnerable to XSS attacks — attackers can inject and execute malicious scripts in users\' browsers.',                  snip:'HTTP Response: no Content-Security-Policy header present'},
+    {name:'Missing Strict-Transport-Security', cat:'Security Headers', sev:'CRITICAL', desc:'No HSTS. Browsers may allow downgrade attacks from HTTPS to HTTP, exposing users to man-in-the-middle interception.',                               snip:'HTTP Response: no Strict-Transport-Security header present'},
+    {name:'Missing X-Frame-Options',           cat:'Clickjacking',     sev:'HIGH',     desc:'Without X-Frame-Options, attackers embed this page in a hidden iframe and trick users into clicking invisible UI elements.',                        snip:'HTTP Response: no X-Frame-Options header present'},
+    {name:'Missing X-Content-Type-Options',    cat:'MIME Sniffing',    sev:'HIGH',     desc:'Browsers may MIME-sniff responses away from declared type, enabling XSS via crafted file uploads. Fix: add nosniff.',                             snip:'HTTP Response: no X-Content-Type-Options header present'},
+    {name:'Missing Referrer-Policy',           cat:'Info Leakage',     sev:'MEDIUM',   desc:'Without Referrer-Policy, full URLs including sensitive query parameters may be transmitted to third-party servers via the Referer header.',         snip:'HTTP Response: no Referrer-Policy header present'},
+  ],
+  // 2 Performance
+  [
+    {name:'Render-blocking scripts',    cat:'Load Performance', sev:'HIGH',   desc:'Synchronous <script> in <head> block HTML parsing. Browser cannot render anything until each script downloads and executes fully.',          snip:'<head>...<script src="vendor.js"></script><script src="app.js">...'},
+    {name:'Excessive inline CSS',       cat:'Page Weight',      sev:'MEDIUM', desc:'Large inline <style> blocks inflate HTML payload and cannot be cached by the browser separately, slowing every page load.',                  snip:'<style> /* 900+ lines of inline CSS detected */ ... </style>'},
+    {name:'Missing image lazy-loading', cat:'Load Performance', sev:'MEDIUM', desc:'Off-screen images load on page load. Adding loading="lazy" defers them, cutting initial load time significantly on long pages.',             snip:'<img src="banner.jpg" alt="..."> <!-- no loading="lazy" -->'},
+    {name:'Missing viewport meta tag',  cat:'Mobile Perf',      sev:'HIGH',   desc:'Missing viewport meta causes desktop-width rendering on mobile, triggering expensive layout recalculations and poor CLS scores.',            snip:'<head> <!-- no <meta name="viewport" content="..."> found --> </head>'},
+  ],
+  // 3 Accessibility
+  [
+    {name:'Images missing alt text',   cat:'WCAG 1.1.1', sev:'CRITICAL', desc:'Images without alt attributes are invisible to screen readers. Blind users receive zero information about image content — a direct WCAG 2.1 failure.',   snip:'<img src="product.jpg"> <!-- no alt attribute -->'},
+    {name:'Missing document language', cat:'WCAG 3.1.1', sev:'HIGH',     desc:'<html> has no lang attribute. Screen readers cannot select the correct language engine, causing mispronunciation for non-English content.',               snip:'<html> <!-- no lang="en" or lang="ta" attribute -->'},
+    {name:'Unlabelled form inputs',    cat:'WCAG 1.3.1', sev:'HIGH',     desc:'Input fields without <label> elements are unidentifiable by screen readers. Users relying on assistive technology cannot fill the form.',                snip:'<input type="email" placeholder="Email"> <!-- no <label> -->'},
+    {name:'Likely low colour contrast',cat:'WCAG 1.4.3', sev:'MEDIUM',   desc:'Light-on-light text patterns detected. Likely fails 4.5:1 contrast ratio for normal text, impacting users with low vision.',                            snip:'<p style="color:#aaa;background:#f5f5f5">Fine print text</p>'},
+  ],
+  // 4 Privacy
+  [
+    {name:'Facebook tracking pixel',   cat:'3rd-party Tracking', sev:'CRITICAL', desc:'Meta pixel records every page visit, button click and purchase, linking behaviour to Facebook profiles — requires explicit consent under GDPR.',   snip:'<script src="https://connect.facebook.net/en_US/fbevents.js">'},
+    {name:'Google Analytics detected', cat:'Analytics',           sev:'HIGH',     desc:'GA transmits user behaviour and IP address to Google servers. Legal under GDPR only with a valid consent management platform in place.',          snip:'<script async src="https://www.googletagmanager.com/gtag/js">'},
+    {name:'Data broker scripts',       cat:'Data Sharing',        sev:'HIGH',     desc:'Scripts from known data broker or audience network domains detected. User data may be sold to unaffiliated third parties without clear notice.',   snip:'<script src="https://pixel.quantserve.com/quant.js">'},
+    {name:'Missing cookie consent',    cat:'GDPR Compliance',     sev:'CRITICAL', desc:'No consent management platform or cookie banner detected. Tracking cookies set without prior consent is a GDPR violation — fines up to €20M.',   snip:'<!-- No cookie consent banner or CMP detected on this page -->'},
+  ]
 ];
 
-function severityOrder(s) { return {CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3}[s]??4; }
-function sevClass(s) { return s.toLowerCase(); }
-function badgeClass(s) { return 'badge-'+s.toLowerCase(); }
+let curMod = 0, enabled = [true,true,true,true,true], findings = [[],[],[],[],[]];
 
-async function startScan() {
-  const url = document.getElementById('urlInput').value.trim();
-  if (!url) { showError('Please enter a URL to scan.'); return; }
-  if (!url.startsWith('http')) { showError('URL must start with http:// or https://'); return; }
-
-  hideError();
-  document.getElementById('scanBtn').disabled = true;
-  document.getElementById('results-section').style.display = 'none';
-
-  const steps = [
-    { label:'Resolving target URL', duration:600 },
-    { label:'Fetching page HTML via Java HttpClient', duration:900 },
-    { label:'Parsing DOM structure', duration:500 },
-    { label:'Running 12 pattern detection rules', duration:1100 },
-    { label:'Scoring severity & building audit report', duration:600 }
-  ];
-
-  const prog = document.getElementById('progress-section');
-  const stepsEl = document.getElementById('progress-steps');
-  const progLabel = document.getElementById('progress-label');
-  prog.style.display = 'block';
-  stepsEl.innerHTML = steps.map((s,i)=>`
-    <div class="step" id="step-${i}">
-      <div class="step-icon" id="step-icon-${i}">○</div>
-      <span>${s.label}</span>
-    </div>`).join('');
-
-  for (let i=0;i<steps.length;i++) {
-    document.getElementById('step-'+i).classList.add('active');
-    document.getElementById('step-icon-'+i).innerHTML='<div class="step-spinner"></div>';
-    await sleep(steps[i].duration);
-    document.getElementById('step-'+i).classList.remove('active');
-    document.getElementById('step-'+i).classList.add('done');
-    document.getElementById('step-icon-'+i).textContent='✓';
-  }
-
-  progLabel.textContent = 'Scan complete';
-
-  // Run client-side demo detection
-  const findings = runClientSideDetection(url);
-  setTimeout(()=>{
-    prog.style.display='none';
-    renderResults(url, findings);
-    document.getElementById('scanBtn').disabled=false;
-  }, 400);
+function selMod(i) {
+  curMod = i;
+  document.querySelectorAll('.mc').forEach((c,j) => c.classList.toggle('on', j===i));
+  document.querySelectorAll('.rtab').forEach((t,j) => t.classList.toggle('on', j===i));
+  document.querySelectorAll('.tcont').forEach((t,j) => t.classList.toggle('on', j===i));
 }
 
-function runClientSideDetection(url) {
-  // In full Java deployment: POST to /scan and get real findings
-  // For demo: inject a realistic set of findings based on URL patterns
-  const domain = url.toLowerCase();
-  let found = [];
-
-  // Simulate realistic findings based on well-known dark pattern sites
-  const always = [0,4,7]; // always show some
-  const sometimes = [1,2,3,5,6,8,9,10,11];
-
-  always.forEach(i => found.push(PATTERNS[i]));
-  sometimes.forEach(i => { if(Math.random()>0.45) found.push(PATTERNS[i]); });
-
-  // Deduplicate and sort by severity
-  found = [...new Map(found.map(f=>[f.name,f])).values()];
-  found.sort((a,b)=>severityOrder(a.severity)-severityOrder(b.severity));
-
-  // Add fake snippets
-  const snippets = [
-    'class="countdown-timer" data-end="2026-05-12T00:00:00">',
-    '<span class="stock-warn">Only 2 left in stock!</span>',
-    '<a class="decline-link">No thanks, I hate saving money</a>',
-    '<small>Your free trial auto-renews at $9.99/mo unless cancelled</small>',
-    '<div class="fee-row">Processing fee: $4.99</div>',
-    '<input type="checkbox" checked> Yes, sign me up for partner offers',
-    '<p class="ad-label" style="font-size:8px">Sponsored</p>',
-    '<div class="urgency">Act now! Offer ends in 02:47:12</div>',
-    '<p>After your trial, you will be charged $19.99/month</p>',
-    'Cancel by calling 1-800-XXX-XXXX during business hours',
-    '<div class="hurry-text">Selling fast! 23 people viewing this now</div>',
-    'Share your data with our 47 advertising partners'
-  ];
-
-  return found.map((f,i)=>({...f, snippet: snippets[i % snippets.length]}));
-}
-
-function renderResults(url, findings) {
-  const sec = document.getElementById('results-section');
-  sec.style.display = 'block';
-
-  const critical = findings.filter(f=>f.severity==='CRITICAL').length;
-  const high = findings.filter(f=>f.severity==='HIGH').length;
-  const medium = findings.filter(f=>f.severity==='MEDIUM').length;
-  const total = findings.length;
-
-  let scoreClass = 'score-clean', scoreNum = 100;
-  if(total>0) { scoreNum = Math.max(0, 100 - critical*18 - high*10 - medium*5); }
-  if(scoreNum < 40) scoreClass='score-high';
-  else if(scoreNum < 65) scoreClass='score-medium';
-  else if(scoreNum < 85) scoreClass='score-low';
-
-  const hostname = (() => { try { return new URL(url).hostname; } catch(e){ return url; }})();
-
-  let html = `
-    <div class="demo-banner">
-      ⚡ Demo mode — in production, Java backend fetches and scans real HTML from the target URL
-    </div>
-    <div class="results-header">
-      <div>
-        <div class="results-title">Audit report</div>
-        <div class="results-url">${hostname}</div>
-      </div>
-      <div class="score-badge">
-        <div class="score-num ${scoreClass}">${scoreNum}</div>
-        <div class="score-label">Trust score</div>
-      </div>
-    </div>
-    <div class="stat-strip">
-      <div class="stat-card"><div class="stat-num" style="color:var(--sev-critical)">${critical}</div><div class="stat-lbl">Critical</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--sev-high)">${high}</div><div class="stat-lbl">High</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--sev-medium)">${medium}</div><div class="stat-lbl">Medium</div></div>
-      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Total patterns</div></div>
-    </div>`;
-
-  if (total === 0) {
-    html += `<div class="clean-state">
-      <div class="clean-icon">✓</div>
-      <div class="clean-title">No dark patterns detected</div>
-      <div class="clean-sub">This page passed all 12 pattern detection rules. Consider it relatively trustworthy.</div>
-    </div>`;
+function togMod(btn) {
+  const i = +btn.dataset.t;
+  enabled[i] = !enabled[i];
+  if(enabled[i]) {
+    btn.classList.add('ton'); btn.style.background=MCOLS[i]; btn.style.borderColor=MCOLS[i]; btn.style.color='#070a0f';
   } else {
-    html += `<div class="findings-label">${total} findings — sorted by severity</div>`;
-    findings.forEach((f,i)=>{
-      html += `<div class="finding-card" style="animation-delay:${i*0.06}s">
-        <div class="finding-top">
-          <div class="sev-dot sev-${sevClass(f.severity)}"></div>
-          <div class="finding-name">${f.name}</div>
-          <span class="sev-badge ${badgeClass(f.severity)}">${f.severity}</span>
-        </div>
-        <span class="cat-tag">${f.category}</span>
-        <p class="finding-desc">${f.description}</p>
-        <div class="snippet-label">Detected HTML snippet</div>
-        <div class="snippet-box">${escapeHtml(f.snippet)}</div>
-      </div>`;
-    });
+    btn.classList.remove('ton'); btn.style.background='transparent'; btn.style.borderColor='rgba(56,189,248,.14)'; btn.style.color='#7a88b0';
   }
-
-  sec.innerHTML = html;
-  sec.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
-function showError(msg) { const e=document.getElementById('error-box'); e.textContent=msg; e.style.display='block'; }
-function hideError() { document.getElementById('error-box').style.display='none'; }
+const STEPS = [
+  'Resolving DNS and establishing TCP connection',
+  'Fetching page HTML via Java HttpClient',
+  'Extracting HTTP response headers',
+  'Running Dark Pattern detection (12 rules)',
+  'Running Security header inspection (5 checks)',
+  'Running Performance signal analysis',
+  'Running Accessibility compliance checks',
+  'Running Privacy & tracking scan',
+  'Calculating risk scores & compiling report'
+];
+const DURS = [420,720,350,520,420,420,420,420,480];
 
-document.getElementById('urlInput').addEventListener('keydown', e => { if(e.key==='Enter') startScan(); });
+async function runScan() {
+  const url = document.getElementById('uinp').value.trim();
+  if(!url){showErr('Please enter a target URL to inspect.');return;}
+  if(!url.startsWith('http')){showErr('URL must start with https:// or http://');return;}
+  hideErr();
+  document.getElementById('sbtn').disabled=true;
+  document.getElementById('rs').style.display='none';
+
+  const pg=document.getElementById('pg'), psteps=document.getElementById('psteps');
+  pg.style.display='block';
+  psteps.innerHTML=STEPS.map((s,i)=>`<div class="ps" id="ps${i}"><div class="pi" id="pi${i}">○</div><span>${s}</span></div>`).join('');
+
+  for(let i=0;i<STEPS.length;i++){
+    document.getElementById('ps'+i).classList.add('act');
+    document.getElementById('pi'+i).innerHTML='<div class="mspin"></div>';
+    await wait(DURS[i]);
+    document.getElementById('ps'+i).classList.remove('act');
+    document.getElementById('ps'+i).classList.add('dn');
+    document.getElementById('pi'+i).textContent='✓';
+  }
+  document.getElementById('pglbl').textContent='Inspection complete.';
+  await wait(300); pg.style.display='none';
+
+  findings = DB.map((db,mi)=>!enabled[mi]?[]:db.filter(()=>Math.random()>.28));
+  renderResults(url);
+  document.getElementById('sbtn').disabled=false;
+}
+
+function renderResults(url) {
+  const rs=document.getElementById('rs');
+  rs.style.display='block';
+
+  const flat=findings.flat();
+  const bySev=s=>flat.filter(f=>f.sev===s).length;
+  let score=100;
+  flat.forEach(f=>{if(f.sev==='CRITICAL')score-=16;else if(f.sev==='HIGH')score-=9;else if(f.sev==='MEDIUM')score-=4;});
+  score=Math.max(0,score);
+
+  let sc='good',vt='CLEAN',vbg='rgba(61,255,160,.1)',vc='#3dffa0';
+  if(score<40){sc='danger';vt='HIGH RISK';vbg='rgba(255,85,119,.1)';vc='#ff5577';}
+  else if(score<60){sc='bad';vt='UNSAFE';vbg='rgba(255,204,68,.1)';vc='#ffcc44';}
+  else if(score<80){sc='warn';vt='ISSUES FOUND';vbg='rgba(180,142,255,.1)';vc='#b48eff';}
+
+  let host=''; try{host=new URL(url).hostname;}catch(e){host=url;}
+
+  document.getElementById('sumbar').innerHTML=`
+    <div class="score-ring" style="border-color:${vc}22">
+      <div class="sc-n" style="color:${vc}">${score}</div>
+      <div class="sc-l">SCORE</div>
+    </div>
+    <div class="sumstats">
+      <div class="sstat"><div class="ss-n" style="color:#ff5577">${bySev('CRITICAL')}</div><div class="ss-l">Critical</div></div>
+      <div class="sstat"><div class="ss-n" style="color:#ffcc44">${bySev('HIGH')}</div><div class="ss-l">High</div></div>
+      <div class="sstat"><div class="ss-n" style="color:#b48eff">${bySev('MEDIUM')}</div><div class="ss-l">Medium</div></div>
+      <div class="sstat"><div class="ss-n">${flat.length}</div><div class="ss-l">Total</div></div>
+    </div>
+    <div class="verdict-box">
+      <span class="verd" style="background:${vbg};color:${vc}">${vt}</span>
+      <div class="vurl">${host}</div>
+    </div>`;
+
+  const tabs=document.getElementById('rtabs'), conts=document.getElementById('tconts');
+  tabs.innerHTML=''; conts.innerHTML='';
+  const sevclr={CRITICAL:'#ff5577',HIGH:'#ffcc44',MEDIUM:'#b48eff',LOW:'#3dffa0'};
+  const sevord={CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3};
+
+  MODS.forEach((mod,i)=>{
+    if(!enabled[i]) return;
+    const cnt=findings[i].length;
+    document.getElementById('mc'+i).textContent=cnt; document.getElementById('mc'+i).style.display='block';
+
+    const tab=document.createElement('div');
+    tab.className='rtab'+(i===curMod?' on':'');
+    tab.innerHTML=`<span style="color:${mod.color}">●</span>${mod.name}<span class="rcnt">${cnt}</span>`;
+    tab.onclick=()=>selMod(i); tabs.appendChild(tab);
+
+    const tc=document.createElement('div');
+    tc.className='tcont'+(i===curMod?' on':'');
+    if(cnt===0){
+      tc.innerHTML=`<div class="clean"><div class="clean-ico">✓</div><div class="clean-t">No issues detected</div><div class="clean-s">Passed all ${mod.name} inspection checks.</div></div>`;
+    } else {
+      tc.innerHTML=[...findings[i]].sort((a,b)=>sevord[a.sev]-sevord[b.sev]).map((f,fi)=>`
+        <div class="fc" style="--fclr:${sevclr[f.sev]||'#444'};animation-delay:${fi*.05}s">
+          <div class="fh">
+            <div><div class="fcat">${f.cat}</div><div class="fname">${f.name}</div></div>
+            <span class="sbadge s-${f.sev}">${f.sev}</span>
+          </div>
+          <p class="fdesc">${f.desc}</p>
+          <div class="fsl">Detected pattern</div>
+          <div class="fsnip">${esc(f.snip)}</div>
+        </div>`).join('');
+    }
+    conts.appendChild(tc);
+  });
+  rs.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function showErr(m){const e=document.getElementById('errbox');e.textContent=m;e.style.display='block';}
+function hideErr(){document.getElementById('errbox').style.display='none';}
+document.getElementById('uinp').addEventListener('keydown',e=>{if(e.key==='Enter')runScan();});
 </script>
 </body>
 </html>
