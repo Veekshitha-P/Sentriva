@@ -557,7 +557,22 @@ async function runScan() {
   document.getElementById('pglbl').textContent='Inspection complete.';
   await wait(300); pg.style.display='none';
 
-  findings = DB.map((db,mi)=>!enabled[mi]?[]:db.filter(()=>Math.random()>.28));
+  try {
+    const response = await fetch('http://localhost:8080/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url })
+    });
+    const data = await response.json();
+    findings = [
+        data.findings || [],
+        [], [], [], []
+    ];
+} catch(e) {
+    showErr('Could not connect to Java server. Make sure it is running.');
+    document.getElementById('sbtn').disabled=false;
+    return;
+}
   renderResults(url);
   document.getElementById('sbtn').disabled=false;
 }

@@ -1,0 +1,149 @@
+{
+  "rules": [
+
+    {
+      "name": "Fake countdown timer",
+      "category": "Urgency Faking",
+      "severity": "CRITICAL",
+      "description": "Artificial countdown timer creates false urgency and pressures users into hasty purchase decisions before they can research alternatives.",
+      "keywords": ["countdown", "count-down", "data-countdown", "expires in", "offer ends", "ends in", "sale ends", "offer expires"]
+    },
+
+    {
+      "name": "Stock scarcity manipulation",
+      "category": "Urgency Faking",
+      "severity": "CRITICAL",
+      "description": "Exaggerated or fake low-stock warnings trigger FOMO and prevent users from taking time to make a rational decision.",
+      "keywords": ["only 1 left", "only 2 left", "only 3 left", "almost gone", "selling fast", "low stock", "limited stock", "hurry, only"]
+    },
+
+    {
+      "name": "Fake social proof urgency",
+      "category": "Urgency Faking",
+      "severity": "HIGH",
+      "description": "Fabricated viewer counts like '19 people are viewing this now' manufacture false competition to pressure the user into buying.",
+      "keywords": ["people viewing", "people are viewing", "others viewing", "watching this now", "viewing right now"]
+    },
+
+    {
+      "name": "Aggressive urgency copy",
+      "category": "Urgency Faking",
+      "severity": "HIGH",
+      "description": "Repeated urgency language across the page is designed to override calm, rational decision-making and force a faster purchase.",
+      "keywords": ["act now", "buy now before", "don't miss out", "last chance", "final hours", "today only", "tonight only"]
+    },
+
+    {
+      "name": "Confirm shaming",
+      "category": "Emotional Manipulation",
+      "severity": "CRITICAL",
+      "description": "Opt-out text is deliberately written to shame or guilt users for declining an offer, exploiting social psychology against the user.",
+      "keywords": ["no thanks, i", "no, i don't want", "i don't want to save", "no, i prefer to pay", "i hate saving", "no thanks i'd rather"]
+    },
+
+    {
+      "name": "Hidden auto-renewal",
+      "category": "Roach Motel",
+      "severity": "CRITICAL",
+      "description": "Subscription auto-renewal terms are deliberately buried in small print. Easy to sign up — nearly impossible to notice before being charged.",
+      "keywords": ["auto-renew", "auto renew", "automatically renewed", "automatically charged", "automatically billed", "recurring charge", "recurring billing"]
+    },
+
+    {
+      "name": "Forced continuity",
+      "category": "Roach Motel",
+      "severity": "HIGH",
+      "description": "Free trials silently convert to paid subscriptions. Cancellation is buried behind phone calls or sent letters to discourage users.",
+      "keywords": ["free trial then", "after your trial", "trial converts", "to avoid being charged", "cancel before", "cancel anytime*"]
+    },
+
+    {
+      "name": "Trick cancellation flow",
+      "category": "Roach Motel",
+      "severity": "HIGH",
+      "description": "Cancellation is routed through high-friction channels like phone calls or physical mail to maximise subscription retention by making it painful.",
+      "keywords": ["cancel by calling", "call to cancel", "cancel by phone", "write to cancel", "mail to cancel", "send a letter to cancel"]
+    },
+
+    {
+      "name": "Hidden processing fee",
+      "category": "Hidden Costs",
+      "severity": "HIGH",
+      "description": "Extra fees are only revealed at the final checkout step, after the user has already invested time selecting products and entering details.",
+      "keywords": ["processing fee", "service fee", "convenience fee", "booking fee", "handling fee", "resort fee", "platform fee"]
+    },
+
+    {
+      "name": "Pre-ticked opt-in checkbox",
+      "category": "Trick Questions",
+      "severity": "HIGH",
+      "description": "Checkboxes are pre-selected for marketing subscriptions or data sharing that the user never explicitly chose. The user must actively opt out.",
+      "keywords": ["checked by default", "pre-selected", "pre-checked", "already selected", "automatically enrolled"]
+    },
+
+    {
+      "name": "Privacy zuckering",
+      "category": "Privacy Abuse",
+      "severity": "MEDIUM",
+      "description": "Vague consent language is engineered to extract maximum data permissions without the user genuinely understanding what they are agreeing to.",
+      "keywords": ["third party partners", "advertising partners", "share your data with", "personalised ads", "targeted advertising", "data partners"]
+    },
+
+    {
+      "name": "Disguised advertisement",
+      "category": "Disguised Ads",
+      "severity": "MEDIUM",
+      "description": "Paid placements are styled to look identical to organic results. Users cannot tell what is an ad and what is genuine content.",
+      "keywords": ["class=\"sponsored\"", "class='sponsored'", "data-sponsored", "promoted result", "featured listing", "paid placement"]
+    },
+
+    {
+      "name": "Misdirection urgency copy",
+      "category": "Urgency Faking",
+      "severity": "MEDIUM",
+      "description": "Scattered urgency phrases across the entire page are used to maintain constant psychological pressure throughout the browsing session.",
+      "keywords": ["limited time offer", "while supplies last", "offer valid until", "flash sale", "deal expires"]
+    },
+
+    {
+      "name": "Bait and switch",
+      "category": "Bait and Switch",
+      "severity": "MEDIUM",
+      "description": "User is attracted by one price or offer but is redirected to a more expensive option at the time of purchase.",
+      "keywords": ["sold out", "no longer available at this price", "upgrade required", "only available with premium", "this item is unavailable"]
+    },
+
+    {
+      "name": "Facebook tracking pixel",
+      "category": "Privacy Tracking",
+      "severity": "CRITICAL",
+      "description": "The Meta Pixel records every page visit and purchase and links it to Facebook user profiles. Requires explicit opt-in consent under GDPR.",
+      "keywords": ["connect.facebook.net", "fbevents.js", "facebook pixel", "fbq('init'", "fbq(\"init\""]
+    },
+
+    {
+      "name": "Google Analytics tracking",
+      "category": "Privacy Tracking",
+      "severity": "HIGH",
+      "description": "Google Analytics transmits user behaviour data and IP address to Google. Requires a valid Consent Management Platform under GDPR in EU.",
+      "keywords": ["googletagmanager.com", "google-analytics.com", "gtag('config'", "gtag(\"config\"", "ga('create'"]
+    },
+
+    {
+      "name": "Hotjar session recording",
+      "category": "Privacy Tracking",
+      "severity": "HIGH",
+      "description": "Hotjar records mouse movements, clicks, scrolls, and keystrokes including form inputs as video replays. Requires explicit user consent.",
+      "keywords": ["hotjar.com", "hj('trigger'", "_hjSettings", "hjid"]
+    },
+
+    {
+      "name": "Missing cookie consent",
+      "category": "GDPR Compliance",
+      "severity": "CRITICAL",
+      "description": "No cookie consent banner or Consent Management Platform detected. Setting tracking cookies without prior consent is a GDPR violation — fines up to 20 million euros.",
+      "keywords": ["cookieconsent", "cookie-consent", "cookiebot", "onetrust", "trustarc", "usercentrics", "gdpr-consent", "cookie-banner"]
+    }
+
+  ]
+}
