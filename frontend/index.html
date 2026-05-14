@@ -564,10 +564,7 @@ async function runScan() {
         body: JSON.stringify({ url: url })
     });
     const data = await response.json();
-    findings = [
-        data.findings || [],
-        [], [], [], []
-    ];
+    findings = data.findings || [];
 } catch(e) {
     showErr('Could not connect to Java server. Make sure it is running.');
     document.getElementById('sbtn').disabled=false;
