@@ -481,7 +481,7 @@ const DB = [
   ],
   // 2 Performance
   [
-    {name:'Render-blocking scripts',    cat:'Load Performance', sev:'HIGH',   desc:'Synchronous <script> in <head> block HTML parsing. Browser cannot render anything until each script downloads and executes fully.',          snip:'<head>...<script src="vendor.js"></script><script src="app.js">...'},
+    {name:'Render-blocking scripts',    cat:'Load Performance', sev:'HIGH',   desc:'Synchronous <script> in <head> block HTML parsing. Browser cannot render anything until each script downloads and executes fully.',          snip:'<head>...<script src="vendor.js"></script>...'},
     {name:'Excessive inline CSS',       cat:'Page Weight',      sev:'MEDIUM', desc:'Large inline <style> blocks inflate HTML payload and cannot be cached by the browser separately, slowing every page load.',                  snip:'<style> /* 900+ lines of inline CSS detected */ ... </style>'},
     {name:'Missing image lazy-loading', cat:'Load Performance', sev:'MEDIUM', desc:'Off-screen images load on page load. Adding loading="lazy" defers them, cutting initial load time significantly on long pages.',             snip:'<img src="banner.jpg" alt="..."> <!-- no loading="lazy" -->'},
     {name:'Missing viewport meta tag',  cat:'Mobile Perf',      sev:'HIGH',   desc:'Missing viewport meta causes desktop-width rendering on mobile, triggering expensive layout recalculations and poor CLS scores.',            snip:'<head> <!-- no <meta name="viewport" content="..."> found --> </head>'},
