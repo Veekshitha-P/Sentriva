@@ -1,6 +1,9 @@
 import models.Rule;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +32,15 @@ public class RuleLoader {
         List<Rule> rules = new ArrayList<>();
 
         try {
-            // Load the file from the classpath (resources/ folder)
+            // Load the file from the classpath (resources/ folder) or filesystem fallback
             InputStream stream = RuleLoader.class.getClassLoader()
                     .getResourceAsStream(filename);
+            if (stream == null) {
+                Path p1 = Path.of("resources", filename);
+                Path p2 = Path.of("backend", "resources", filename);
+                if (Files.exists(p1)) stream = Files.newInputStream(p1);
+                else if (Files.exists(p2)) stream = Files.newInputStream(p2);
+            }
 
             if (stream == null) {
                 System.err.println("[RuleLoader] ERROR: Could not find " + filename
@@ -40,7 +49,7 @@ public class RuleLoader {
             }
 
             // Read entire file content into a string
-            String json = new String(stream.readAllBytes());
+            String json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
             stream.close();
 
             // Parse the JSON array of rule objects
@@ -143,12 +152,7 @@ public class RuleLoader {
         if (colonIdx == -1) return null;
         int start = json.indexOf("\"", colonIdx + 1);
         if (start == -1) return null;
-        int end = start + 1;
-        while (end < json.length()) {
-            if (json.charAt(end) == '"' && json.charAt(end - 1) != '\\') break;
-            end++;
-        }
-        return json.substring(start + 1, end);
+        return readJsonString(json, start);
     }
 
     /** Extracts the keywords array from a rule JSON block */
@@ -162,17 +166,60 @@ public class RuleLoader {
 
         String arrContent = block.substring(start + 1, end);
 
-        // Extract each quoted string in the array
         int i = 0;
         while (i < arrContent.length()) {
             int q1 = arrContent.indexOf("\"", i);
             if (q1 == -1) break;
-            int q2 = arrContent.indexOf("\"", q1 + 1);
-            if (q2 == -1) break;
-            keywords.add(arrContent.substring(q1 + 1, q2));
-            i = q2 + 1;
+            String val = readJsonString(arrContent, q1);
+            if (val == null) break;
+            keywords.add(val);
+            i = advancePastJsonString(arrContent, q1);
         }
 
         return keywords;
+    }
+
+    private static int advancePastJsonString(String s, int openQuoteIdx) {
+        int idx = openQuoteIdx + 1;
+        while (idx < s.length()) {
+            char c = s.charAt(idx);
+            if (c == '\\') {
+                idx += 2;
+                continue;
+            }
+            if (c == '"') {
+                return idx + 1;
+            }
+            idx++;
+        }
+        return s.length();
+    }
+
+    private static String readJsonString(String s, int openQuoteIdx) {
+        StringBuilder sb = new StringBuilder();
+        int idx = openQuoteIdx + 1;
+        while (idx < s.length()) {
+            char c = s.charAt(idx);
+            if (c == '\\' && idx + 1 < s.length()) {
+                char next = s.charAt(idx + 1);
+                switch (next) {
+                    case '"':  sb.append('"'); break;
+                    case '\\': sb.append('\\'); break;
+                    case '/':  sb.append('/'); break;
+                    case 'n':  sb.append('\n'); break;
+                    case 'r':  sb.append('\r'); break;
+                    case 't':  sb.append('\t'); break;
+                    default:   sb.append(next); break;
+                }
+                idx += 2;
+                continue;
+            }
+            if (c == '"') {
+                return sb.toString();
+            }
+            sb.append(c);
+            idx++;
+        }
+        return null;
     }
 }

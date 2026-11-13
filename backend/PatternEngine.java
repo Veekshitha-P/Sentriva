@@ -1,88 +1,76 @@
+import models.FetchResult;
 import models.Finding;
 import models.Rule;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 
 /**
- * SENTRIVA - PatternEngine
- * --------------------------
- * The core detection engine.
- *
- * How it works:
- *   1. RuleLoader reads all rules from resources/patterns.json
- *   2. For each rule, checks if any of its keywords appear in the HTML
- *   3. If found → creates a Finding with the matched snippet
- *   4. Returns all findings sorted by severity (CRITICAL first)
- *
- * Detection method: keyword matching (case-insensitive)
- * One finding per rule maximum — avoids duplicate reports.
+ * SENTRIVA - PatternEngine (Module 0: Dark Patterns)
+ * ---------------------------------------------------
+ * Scans fetched HTML for deceptive UX / dark pattern rules from patterns.json.
  */
 public class PatternEngine {
 
-    // Load all rules once when the class is first used
     private static final List<Rule> RULES = RuleLoader.loadRules("patterns.json");
 
-    /**
-     * Scans the given HTML against all loaded rules.
-     *
-     * @param html  the raw HTML string fetched from the target website
-     * @return      list of findings, sorted by severity (CRITICAL → HIGH → MEDIUM → LOW)
-     */
+    public static int ruleCount() {
+        int count = 0;
+        for (Rule r : RULES) {
+            if (!isPrivacyRule(r)) count++;
+        }
+        return count;
+    }
+
+    public static List<Finding> inspect(FetchResult page) {
+        return scan(page.getHtml());
+    }
+
     public static List<Finding> scan(String html) {
-
         List<Finding> findings = new ArrayList<>();
+        if (html == null || html.isEmpty()) return findings;
 
-        // Lowercase once — reused for all keyword checks
-        String htmlLower = html.toLowerCase();
+        String htmlLower = html.toLowerCase(Locale.ROOT);
 
         for (Rule rule : RULES) {
+            if (isPrivacyRule(rule)) continue;
 
-            // Check each keyword in the rule
             for (String keyword : rule.getKeywords()) {
-
-                int index = htmlLower.indexOf(keyword.toLowerCase());
-
+                int index = htmlLower.indexOf(keyword.toLowerCase(Locale.ROOT));
                 if (index != -1) {
-                    // Keyword found — extract surrounding HTML as snippet
                     String snippet = extractSnippet(html, index);
-
-                    // Create a finding for this rule
                     findings.add(new Finding(
+                        0,
                         rule.getName(),
                         rule.getCategory(),
                         rule.getSeverity(),
                         rule.getDescription(),
                         snippet
                     ));
-
-                    // Only one finding per rule — move to next rule
                     break;
                 }
             }
         }
 
-        // Sort: CRITICAL → HIGH → MEDIUM → LOW
         findings.sort(Comparator.comparingInt(f -> severityOrder(f.getSeverity())));
-
-        System.out.println("[PatternEngine] Scanned " + RULES.size()
-                + " rules → found " + findings.size() + " issue(s)");
-
+        System.out.println("[PatternEngine] Checked " + ruleCount()
+                + " dark pattern rules -> found " + findings.size() + " issue(s)");
         return findings;
     }
 
-    /**
-     * Extracts a readable snippet of HTML around the found keyword.
-     * Shows 30 characters before and 120 after the match.
-     */
+    private static boolean isPrivacyRule(Rule r) {
+        String cat = r.getCategory() == null ? "" : r.getCategory().toLowerCase(Locale.ROOT);
+        return cat.contains("privacy tracking") || cat.contains("gdpr");
+    }
+
     private static String extractSnippet(String html, int index) {
         int start = Math.max(0, index - 30);
         int end   = Math.min(html.length(), index + 120);
-        return html.substring(start, end).trim();
+        return html.substring(start, end).replaceAll("\\s+", " ").trim();
     }
 
-    /** Maps severity to sort order (lower = shown first) */
     private static int severityOrder(String severity) {
         switch (severity) {
             case "CRITICAL": return 0;
